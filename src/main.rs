@@ -1,20 +1,22 @@
-const weight_1_1: u32 = 5;
-const weight_2_1: u32 = 3;
-const weight_1_2: u32 = 7;
-const weight_2_2: u32 = 1;
+mod layer;
 
-const bias_1: u32 = 3;
-const bias_2: u32 = 4;
+const WEIGHT_1_1: u32 = 5;
+const WEIGHT_2_1: u32 = 3;
+const WEIGHT_1_2: u32 = 7;
+const WEIGHT_2_2: u32 = 1;
+
+const BIAS_1: u32 = 3;
+const BIAS_2: u32 = 2;
 
 fn main() {
 
-    println!("{}", classify(3, 2));   
+    println!("{}", classify(0, 0));   
 
 }
 
 fn classify(x: u32, y: u32) -> u32 {
-    let output1 = x * weight_1_1 + y * weight_2_1 + bias_1;
-    let output2 = x * weight_1_2 + y * weight_2_2 + bias_2;
+    let output1 = x * WEIGHT_1_1 + y * WEIGHT_2_1 + BIAS_1;
+    let output2 = x * WEIGHT_1_2 + y * WEIGHT_2_2 + BIAS_2;
 
     if output1 >= output2 { return 0 } else { 1 }
 
