@@ -1,4 +1,5 @@
 mod layer;
+mod neural_network;
 
 const WEIGHT_1_1: u32 = 5;
 const WEIGHT_2_1: u32 = 3;

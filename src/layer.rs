@@ -1,5 +1,5 @@
 // Represents a single layer in a neural network
-struct Layer {
+pub struct Layer {
     weights: Vec<Vec<f32>>,
     biases: Vec<f32>
 }
@@ -29,7 +29,7 @@ impl Layer {
 mod tests {
     use super::*;
 
-    // Two inputs to two outputs
+    // Test two inputs to two outputs
     #[test]
     fn test_calculate_outputs() {
         let weights: Vec<Vec<f32>> = vec![vec![1.0, 2.0], vec![3.0, 4.0]];
