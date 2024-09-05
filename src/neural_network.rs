@@ -20,4 +20,4 @@ impl NeuralNetwork {
         }
         inputs_for_next_layer
     }
-}
+} 
