@@ -57,7 +57,7 @@ mod tests {
     fn test_classify_1() {
         let weights: Vec<Vec<f32>> = vec![vec![1.0, 2.0], vec![3.0, 4.0]];
         let biases: Vec<f32> = vec![5.0, 6.0];
-        let layer = Layer::new(weights, biases);
+        let layer = Layer::new_manual(weights, biases);
         let network = NeuralNetwork::new(vec![layer]);
         let inputs: Vec<f32> = vec![1.0, 2.0];
         assert_eq!(1, classify(&network.calculate_outputs(&inputs)));
@@ -68,10 +68,10 @@ mod tests {
     fn test_loss_1() {
         let data = vec![DataPoint::new(vec![0.0, 0.0], vec![0.0, 0.0])];
         let weights: Vec<Vec<f32>> = vec![vec![1.0, 2.0], vec![3.0, 4.0]];
-        let biases: Vec<f32> = vec![5.0, 6.0];
-        let layer = Layer::new(weights, biases);
+        let biases: Vec<f32> = vec![20.0, 20.0];
+        let layer = Layer::new_manual(weights, biases);
         let network = NeuralNetwork::new(vec![layer]);
 
-        assert_eq!(network.loss(&data), 5.0 * 5.0 + 6.0 * 6.0);
+        assert_eq!(network.loss(&data), 2.0);
     }
 }
