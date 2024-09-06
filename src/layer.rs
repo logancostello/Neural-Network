@@ -1,9 +1,10 @@
 // Represents a single layer in a neural network
+#[derive(Clone)]
 pub struct Layer {
-    weights: Vec<Vec<f32>>,
-    biases: Vec<f32>,
-    loss_gradient_weights: Vec<Vec<f32>>,
-    loss_gradient_biases: Vec<f32>
+    pub weights: Vec<Vec<f32>>,
+    pub biases: Vec<f32>,
+    pub loss_gradient_weights: Vec<Vec<f32>>,
+    pub loss_gradient_biases: Vec<f32>
 }
 
 impl Layer {

@@ -45,8 +45,10 @@ impl NeuralNetwork {
     pub fn learn(&mut self, training_data: &Vec<DataPoint>, learn_rate: f32) {
         let h: f32 = 0.0001; // A small step to get the slope
         let original_loss: f32 = self.loss(training_data);
+
+        let layers = self.layers.clone(); // Will be fixed in future, but avoids issue of not being able to call self.loss()
         
-        for mut layer in &mut self.layers {
+        for mut layer in layers {
             
             // Calculate gradient for weights
             for i in 0..layer.loss_gradient_weights.len() {
@@ -59,9 +61,9 @@ impl NeuralNetwork {
 
             // Calculate gradient for biases
             for i in 0..layer.loss_gradient_biases.len() {
-                layer.biases[i][j] += h;
-                layer.loss_gradient_biases[i][j] = (self.loss(training_data) - original_loss) / h;
-                layer.biases[i][j] -= h;
+                layer.biases[i] += h;
+                layer.loss_gradient_biases[i] = (self.loss(training_data) - original_loss) / h;
+                layer.biases[i] -= h;
             }
         }
         self.apply_all_gradients(learn_rate);
@@ -69,7 +71,7 @@ impl NeuralNetwork {
 
     // Update all weights and biases in all layers
     pub fn apply_all_gradients(&mut self, learn_rate: f32) {
-        for mut layer in &mut self.layers {
+        for layer in &mut self.layers {
             layer.apply_gradients(learn_rate);
         }
     }
