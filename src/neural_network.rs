@@ -40,6 +40,13 @@ impl NeuralNetwork {
         // Return average loss for consistency across varying amounts of data
         loss / data.len() as f32
     }
+
+    // Update all weights and biases in all layers
+    pub fn apply_all_gradients(&mut self, learn_rate: f32) {
+        for mut layer in &mut self.layers {
+            layer.apply_gradients(learn_rate);
+        }
+    }
 } 
 
 // Indicate class by returning the index of the greatest output

@@ -19,7 +19,7 @@ impl Layer {
     }
 
     // Create new Layer with randomly initialized weights
-    pub fn new (num_nodes_in: usize, num_nodes_out: usize) -> Self {
+    pub fn new(num_nodes_in: usize, num_nodes_out: usize) -> Self {
         Layer {
             weights: initialize_weights(num_nodes_in, num_nodes_out),
             biases: vec![0.0; num_nodes_out],
@@ -40,6 +40,16 @@ impl Layer {
             activations.push(activation_function(weighted_input));
         }
         activations
+    }
+
+    // Adjust weights by the gradient times the learn rate
+    pub fn apply_gradients(&mut self, learn_rate: f32) {
+        for i in 0..self.weights.len() {
+            self.biases[i] -= learn_rate * self.loss_gradient_biases[i];
+            for j in 0..self.weights[0].len() {
+                self.weights[i][j] -= learn_rate * self.loss_gradient_weights[i][j];
+            }
+        }
     }
 }
 
@@ -86,5 +96,17 @@ mod tests {
         let outputs = layer.calculate_outputs(&inputs);
         assert_eq!(outputs[0] < 0.1, true);
         assert_eq!(outputs[1] < 0.1, true);
-    } 
+    }
+    
+    #[test]
+    fn test_apply_gradients_1() {
+        let weights: Vec<Vec<f32>> = vec![vec![1.0, 2.0], vec![3.0, 4.0]];
+        let biases: Vec<f32> = vec![5.0, 6.0];
+        let mut layer = Layer::new_manual(weights, biases);
+        layer.loss_gradient_weights = vec![vec![1.0, 2.0], vec![3.0, 4.0]];
+        layer.loss_gradient_biases = vec![2.0, 2.0];
+        layer.apply_gradients(1.0);
+        assert_eq!(layer.weights, vec![vec![0.0, 0.0], vec![0.0, 0.0]]);
+        assert_eq!(layer.biases, vec![3.0, 4.0]);
+    }
 }
