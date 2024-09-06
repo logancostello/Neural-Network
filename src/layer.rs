@@ -2,7 +2,8 @@
 pub struct Layer {
     weights: Vec<Vec<f32>>,
     biases: Vec<f32>,
-
+    loss_gradient_weights: Vec<Vec<f32>>,
+    loss_gradient_biases: Vec<f32>
 }
 
 impl Layer {
@@ -10,11 +11,23 @@ impl Layer {
     // Create new Layer with manually set weights and biases
     pub fn new_manual(weights: Vec<Vec<f32>>, biases:Vec<f32>) -> Self {
         Layer {
+            loss_gradient_weights: vec![vec![0.0; weights[0].len()]; weights.len()],
+            loss_gradient_biases: vec![0.0; biases.len()],
             weights,
             biases
         }
     }
 
+    // Create new Layer with randomly initialized weights
+    pub fn new (num_nodes_in: usize, num_nodes_out: usize) -> Self {
+        Layer {
+            weights: initialize_weights(num_nodes_in, num_nodes_out),
+            biases: vec![0.0; num_nodes_out],
+            loss_gradient_weights: vec![vec![0.0; num_nodes_in]; num_nodes_out],
+            loss_gradient_biases: vec![0.0; num_nodes_out]
+        }
+
+    }
 
     // Loop through all of the inputs and calculate the outputs
     pub fn calculate_outputs(&self, inputs: &Vec<f32>) -> Vec<f32> {
@@ -35,6 +48,17 @@ fn activation_function(weighted_input: f32) -> f32 {
     1.0 / (1.0 + (-weighted_input).exp())
 }
 
+// Initialize weights using Xavier/Glorot Initialization
+fn initialize_weights(num_nodes_in: usize, num_nodes_out: usize) ->  Vec<Vec<f32>> {
+    let limit: f32 = (6.0 / (num_nodes_in + num_nodes_out) as f32).sqrt();
+    let mut weights: Vec<Vec<f32>> = vec![vec![0.0; num_nodes_in]; num_nodes_out];
+    for i in 0..num_nodes_out {
+        for j in 0..num_nodes_in {
+            weights[i][j] = rand::random::<f32>() * 2.0 * limit - limit;
+        }
+    }
+    weights
+}
 
 #[cfg(test)]
 mod tests {
@@ -64,5 +88,3 @@ mod tests {
         assert_eq!(outputs[1] < 0.1, true);
     } 
 }
-
-// working on initilization then gradiwnt decent
