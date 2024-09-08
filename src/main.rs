@@ -8,8 +8,8 @@ use crate::neural_network::NeuralNetwork;
 use rand::Rng;
 
 fn main() {
-    let learn_rate = 0.75;
-    let nodes_per_layer = vec![2, 3, 2];
+    let learn_rate = 0.25;
+    let nodes_per_layer = vec![2, 5, 2];
     run_2d_curved_test(learn_rate, nodes_per_layer);
 }
 
@@ -43,7 +43,7 @@ fn generate_curved_test(n: usize) -> Vec<DataPoint> {
         let x: f32 = rng.gen_range(0.0..10.0);
         let y: f32 = rng.gen_range(0.0..10.0);
 
-        let expected_output: Vec<usize> = if y >= 0.2 * (x - 3.0).powf(4.0) + 0.1 * (x - 3.0).powf(3.0) - (x - 3.0).powf(2.0) + 5.0{
+        let expected_output: Vec<usize> = if y >= x.powf(2.0) {
             vec![1, 0]
         } else {
             vec![0, 1]
@@ -70,7 +70,7 @@ fn run_2d_linear_test(learn_rate: f32, nodes_per_layer: Vec<usize>) {
 // Test if neural network can learn to identify 2d points separated by a curved line
 fn run_2d_curved_test(learn_rate: f32, nodes_per_layer: Vec<usize>) {
     let mut neural_network = NeuralNetwork::new(nodes_per_layer);
-    let training_data = generate_curved_test(100);
+    let training_data = generate_curved_test(500);
     let mut num = 1;
     println!("Loss: {}, Accuracy: {}", neural_network.loss(&training_data), neural_network.accuracy(&training_data));
     while neural_network.accuracy(&training_data) < 1.0 {
