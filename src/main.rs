@@ -8,8 +8,9 @@ use crate::neural_network::NeuralNetwork;
 use rand::Rng;
 
 fn main() {
-    let learn_rate = 2.5;
-    run_2d_linear_test(learn_rate);
+    let learn_rate = 0.75;
+    let nodes_per_layer = vec![2, 3, 2];
+    run_2d_curved_test(learn_rate, nodes_per_layer);
 }
 
 // Generates n points with two populations, indicating whether they are above or below the given line
@@ -54,9 +55,8 @@ fn generate_curved_test(n: usize) -> Vec<DataPoint> {
 }
 
 // Test if neural network can learn to identify 2d points separated by a linear line
-fn run_2d_linear_test(learn_rate: f32) {
-    let layer = Layer::new(2, 2);
-    let mut neural_network = NeuralNetwork::new(vec![layer]);
+fn run_2d_linear_test(learn_rate: f32, nodes_per_layer: Vec<usize>) {
+    let mut neural_network = NeuralNetwork::new(nodes_per_layer);
     let training_data = generate_linear_test(100, -1.0, 4.0);
     let mut num = 1;
     println!("Loss: {}, Accuracy: {}", neural_network.loss(&training_data), neural_network.accuracy(&training_data));
@@ -68,9 +68,8 @@ fn run_2d_linear_test(learn_rate: f32) {
 }
 
 // Test if neural network can learn to identify 2d points separated by a curved line
-fn run_2d_curved_test(learn_rate: f32) {
-    let layer = Layer::new(2, 2);
-    let mut neural_network = NeuralNetwork::new(vec![layer]);
+fn run_2d_curved_test(learn_rate: f32, nodes_per_layer: Vec<usize>) {
+    let mut neural_network = NeuralNetwork::new(nodes_per_layer);
     let training_data = generate_curved_test(100);
     let mut num = 1;
     println!("Loss: {}, Accuracy: {}", neural_network.loss(&training_data), neural_network.accuracy(&training_data));
