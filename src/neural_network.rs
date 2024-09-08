@@ -7,8 +7,17 @@ pub struct NeuralNetwork {
 
 impl NeuralNetwork {
 
-    // Create new Neural Network
-    pub fn new(layers: Vec<Layer>) -> Self {
+    // Creates a new Neural Network with specifically given layers
+    pub fn new_manual(layers: Vec<Layer>) -> Self {
+        NeuralNetwork { layers }
+    }
+
+    // Creates a new Neural Network from list of nodes per layer
+    pub fn new(nodes_per_layer: Vec<usize>) -> Self {
+        let mut layers: Vec<Layer> = vec![];
+        for i in 1..nodes_per_layer.len() {
+            layers.push(Layer::new(nodes_per_layer[i - 1], nodes_per_layer[i]))
+        }
         NeuralNetwork { layers }
     }
 
@@ -106,7 +115,7 @@ mod tests {
         let weights: Vec<Vec<f32>> = vec![vec![1.0, 2.0], vec![3.0, 4.0]];
         let biases: Vec<f32> = vec![5.0, 6.0];
         let layer = Layer::new_manual(weights, biases);
-        let network = NeuralNetwork::new(vec![layer]);
+        let network = NeuralNetwork::new_manual(vec![layer]);
         let inputs: Vec<f32> = vec![1.0, 2.0];
         assert_eq!(1, classify(&network.calculate_outputs(&inputs)));
     } 
@@ -118,7 +127,7 @@ mod tests {
         let weights: Vec<Vec<f32>> = vec![vec![1.0, 2.0], vec![3.0, 4.0]];
         let biases: Vec<f32> = vec![20.0, 20.0];
         let layer = Layer::new_manual(weights, biases);
-        let network = NeuralNetwork::new(vec![layer]);
+        let network = NeuralNetwork::new_manual(vec![layer]);
 
         assert_eq!(network.loss(&data), 2.0);
     }
