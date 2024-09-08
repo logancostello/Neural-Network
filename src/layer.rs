@@ -1,6 +1,8 @@
 // Represents a single layer in a neural network
 #[derive(Clone)]
 pub struct Layer {
+    nodes_in: usize,
+    nodes_out: usize,
     pub weights: Vec<Vec<f32>>,
     pub biases: Vec<f32>,
     pub loss_gradient_weights: Vec<Vec<f32>>,
@@ -14,6 +16,8 @@ impl Layer {
         Layer {
             loss_gradient_weights: vec![vec![0.0; weights[0].len()]; weights.len()],
             loss_gradient_biases: vec![0.0; biases.len()],
+            nodes_in: weights[0].len(),
+            nodes_out: biases.len(),
             weights,
             biases
         }
@@ -25,7 +29,9 @@ impl Layer {
             weights: initialize_weights(num_nodes_in, num_nodes_out),
             biases: vec![0.0; num_nodes_out],
             loss_gradient_weights: vec![vec![0.0; num_nodes_in]; num_nodes_out],
-            loss_gradient_biases: vec![0.0; num_nodes_out]
+            loss_gradient_biases: vec![0.0; num_nodes_out],
+            nodes_in: num_nodes_in,
+            nodes_out: num_nodes_out
         }
 
     }
