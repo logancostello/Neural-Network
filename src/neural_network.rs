@@ -22,7 +22,7 @@ impl NeuralNetwork {
         inputs_for_next_layer
     }
 
-    // Calculate the loss for a given datapoint
+    // Calculate the loss for a given dataset
     pub fn loss(&self, data: &Vec<DataPoint>) -> f32 {
         let mut loss: f32 = 0.0;
 
@@ -32,13 +32,28 @@ impl NeuralNetwork {
             
             // Add error of each node
             for i in 0..outputs.len() {
-                let error = outputs[i] - dp.expected_outputs[i];
+                let error = outputs[i] - dp.expected_outputs[i] as f32;
                 loss += error * error;
             }
         }
 
         // Return average loss for consistency across varying amounts of data
         loss / data.len() as f32
+    }
+
+    // Calculate accuracy for a given dataset
+    pub fn accuracy(&self, data: &Vec<DataPoint>) -> f32 {
+        let mut num_correct = 0.0;
+
+        // Check expected class is the same as the predicted class
+        for dp in data {
+            let outputs = self.calculate_outputs(&dp.inputs);
+            let predicted_class: usize = classify(&outputs);
+            if dp.expected_outputs[predicted_class] == 1 {
+                num_correct += 1.0;
+            }
+        }
+        num_correct / data.len() as f32
     }
 
     // Run a single iteration of Gradient Descent
