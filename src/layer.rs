@@ -39,9 +39,9 @@ impl Layer {
     // Loop through all of the inputs and calculate the outputs
     pub fn calculate_outputs(&self, inputs: &Vec<f32>) -> Vec<f32> {
         let mut activations: Vec<f32> = Vec::new();
-        for i in 0..self.nodes_in {
+        for i in 0..self.nodes_out {
             let mut weighted_input = self.biases[i];
-            for j in 0..self.nodes_out {
+            for j in 0..self.nodes_in {
                 weighted_input += inputs[j] * self.weights[i][j];
             }
             activations.push(activation_function(weighted_input));
