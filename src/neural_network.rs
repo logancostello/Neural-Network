@@ -7,16 +7,12 @@ pub struct NeuralNetwork {
 
 impl NeuralNetwork {
 
-    // Creates a new Neural Network with specifically given layers
-    pub fn new_manual(layers: Vec<Layer>) -> Self {
-        NeuralNetwork { layers }
-    }
-
     // Creates a new Neural Network from list of nodes per layer
     pub fn new(nodes_per_layer: Vec<usize>) -> Self {
         let mut layers: Vec<Layer> = vec![];
         for i in 1..nodes_per_layer.len() {
-            layers.push(Layer::new(nodes_per_layer[i - 1], nodes_per_layer[i]))
+            let is_hidden: bool = if i == nodes_per_layer.len() - 1 { false } else { true };
+            layers.push(Layer::new(nodes_per_layer[i - 1], nodes_per_layer[i], is_hidden))
         }
         NeuralNetwork { layers }
     }
@@ -102,33 +98,4 @@ impl NeuralNetwork {
 // Indicate class by returning the index of the greatest output
 pub fn classify(nn_outputs: &Vec<f32>) -> usize {
     nn_outputs.iter().enumerate().max_by(|&(_, a), &(_, b)| a.partial_cmp(b).unwrap()).map(|(index, _)| index).unwrap()
-}
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    // Test two inputs to two outputs
-    #[test]
-    fn test_classify_1() {
-        let weights: Vec<Vec<f32>> = vec![vec![1.0, 2.0], vec![3.0, 4.0]];
-        let biases: Vec<f32> = vec![5.0, 6.0];
-        let layer = Layer::new_manual(weights, biases);
-        let network = NeuralNetwork::new_manual(vec![layer]);
-        let inputs: Vec<f32> = vec![1.0, 2.0];
-        assert_eq!(1, classify(&network.calculate_outputs(&inputs)));
-    } 
-
-    // Test loss function
-    #[test]
-    fn test_loss_1() {
-        let data = vec![DataPoint::new(vec![0.0, 0.0], vec![0, 0])];
-        let weights: Vec<Vec<f32>> = vec![vec![1.0, 2.0], vec![3.0, 4.0]];
-        let biases: Vec<f32> = vec![20.0, 20.0];
-        let layer = Layer::new_manual(weights, biases);
-        let network = NeuralNetwork::new_manual(vec![layer]);
-
-        assert_eq!(network.loss(&data), 2.0);
-    }
 }

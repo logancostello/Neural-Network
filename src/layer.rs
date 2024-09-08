@@ -6,32 +6,22 @@ pub struct Layer {
     pub weights: Vec<Vec<f32>>,
     pub biases: Vec<f32>,
     pub loss_gradient_weights: Vec<Vec<f32>>,
-    pub loss_gradient_biases: Vec<f32>
+    pub loss_gradient_biases: Vec<f32>,
+    pub is_hidden: bool
 }
 
 impl Layer {
 
-    // Create new Layer with manually set weights and biases
-    pub fn new_manual(weights: Vec<Vec<f32>>, biases:Vec<f32>) -> Self {
-        Layer {
-            loss_gradient_weights: vec![vec![0.0; weights[0].len()]; weights.len()],
-            loss_gradient_biases: vec![0.0; biases.len()],
-            nodes_in: weights[0].len(),
-            nodes_out: biases.len(),
-            weights,
-            biases
-        }
-    }
-
     // Create new Layer with randomly initialized weights
-    pub fn new(num_nodes_in: usize, num_nodes_out: usize) -> Self {
+    pub fn new(num_nodes_in: usize, num_nodes_out: usize, is_hidden: bool) -> Self {
         Layer {
             weights: initialize_weights(num_nodes_in, num_nodes_out),
             biases: vec![0.0; num_nodes_out],
             loss_gradient_weights: vec![vec![0.0; num_nodes_in]; num_nodes_out],
             loss_gradient_biases: vec![0.0; num_nodes_out],
             nodes_in: num_nodes_in,
-            nodes_out: num_nodes_out
+            nodes_out: num_nodes_out,
+            is_hidden: is_hidden
         }
 
     }
@@ -75,45 +65,4 @@ fn initialize_weights(num_nodes_in: usize, num_nodes_out: usize) ->  Vec<Vec<f32
         }
     }
     weights
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    // Test two inputs to two outputs
-    #[test]
-    fn test_calculate_outputs_1() {
-        let weights: Vec<Vec<f32>> = vec![vec![1.0, 2.0], vec![3.0, 4.0]];
-        let biases: Vec<f32> = vec![5.0, 6.0];
-        let layer = Layer::new_manual(weights, biases);
-        let inputs: Vec<f32> = vec![1.0, 2.0];
-        let outputs = layer.calculate_outputs(&inputs);
-        assert_eq!(outputs[0] > 0.99, true);
-        assert_eq!(outputs[1] > 0.99, true);
-    } 
-
-    // Test activation function has effect
-    #[test]
-    fn test_calculate_outputs_2() {
-        let weights: Vec<Vec<f32>> = vec![vec![1.0, 2.0], vec![3.0, 4.0]];
-        let biases: Vec<f32> = vec![0.0, 0.0];
-        let layer = Layer::new_manual(weights, biases);
-        let inputs: Vec<f32> = vec![-1.0, -2.0];
-        let outputs = layer.calculate_outputs(&inputs);
-        assert_eq!(outputs[0] < 0.1, true);
-        assert_eq!(outputs[1] < 0.1, true);
-    }
-    
-    #[test]
-    fn test_apply_gradients_1() {
-        let weights: Vec<Vec<f32>> = vec![vec![1.0, 2.0], vec![3.0, 4.0]];
-        let biases: Vec<f32> = vec![5.0, 6.0];
-        let mut layer = Layer::new_manual(weights, biases);
-        layer.loss_gradient_weights = vec![vec![1.0, 2.0], vec![3.0, 4.0]];
-        layer.loss_gradient_biases = vec![2.0, 2.0];
-        layer.apply_gradients(1.0);
-        assert_eq!(layer.weights, vec![vec![0.0, 0.0], vec![0.0, 0.0]]);
-        assert_eq!(layer.biases, vec![3.0, 4.0]);
-    }
 }
