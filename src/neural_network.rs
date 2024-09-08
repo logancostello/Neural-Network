@@ -45,25 +45,23 @@ impl NeuralNetwork {
     pub fn learn(&mut self, training_data: &Vec<DataPoint>, learn_rate: f32) {
         let h: f32 = 0.0001; // A small step to get the slope
         let original_loss: f32 = self.loss(training_data);
-
-        let layers = self.layers.clone(); // Will be fixed in future, but avoids issue of not being able to call self.loss()
         
-        for mut layer in layers {
+        for l in 0..self.layers.len() { // Looping over the index avoids dealing with borrow checker
             
             // Calculate gradient for weights
-            for i in 0..layer.loss_gradient_weights.len() {
-                for j in 0..layer.loss_gradient_weights[0].len() {
-                    layer.weights[i][j] += h;
-                    layer.loss_gradient_weights[i][j] = (self.loss(training_data) - original_loss) / h;
-                    layer.weights[i][j] -= h;
+            for i in 0..self.layers[l].loss_gradient_weights.len() {
+                for j in 0..self.layers[l].loss_gradient_weights[0].len() {
+                    self.layers[l].weights[i][j] += h;
+                    self.layers[l].loss_gradient_weights[i][j] = (self.loss(training_data) - original_loss) / h;
+                    self.layers[l].weights[i][j] -= h;
                 }
             }
 
             // Calculate gradient for biases
-            for i in 0..layer.loss_gradient_biases.len() {
-                layer.biases[i] += h;
-                layer.loss_gradient_biases[i] = (self.loss(training_data) - original_loss) / h;
-                layer.biases[i] -= h;
+            for i in 0..self.layers[l].loss_gradient_biases.len() {
+                self.layers[l].biases[i] += h;
+                self.layers[l].loss_gradient_biases[i] = (self.loss(training_data) - original_loss) / h;
+                self.layers[l].biases[i] -= h;
             }
         }
         self.apply_all_gradients(learn_rate);
