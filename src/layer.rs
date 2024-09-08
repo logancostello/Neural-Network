@@ -1,8 +1,8 @@
 // Represents a single layer in a neural network
 #[derive(Clone)]
 pub struct Layer {
-    nodes_in: usize,
-    nodes_out: usize,
+    pub nodes_in: usize,
+    pub nodes_out: usize,
     pub weights: Vec<Vec<f32>>,
     pub biases: Vec<f32>,
     pub loss_gradient_weights: Vec<Vec<f32>>,
@@ -39,9 +39,9 @@ impl Layer {
     // Loop through all of the inputs and calculate the outputs
     pub fn calculate_outputs(&self, inputs: &Vec<f32>) -> Vec<f32> {
         let mut activations: Vec<f32> = Vec::new();
-        for i in 0..inputs.len() {
+        for i in 0..self.nodes_in {
             let mut weighted_input = self.biases[i];
-            for j in 0..self.weights.len() {
+            for j in 0..self.nodes_out {
                 weighted_input += inputs[j] * self.weights[i][j];
             }
             activations.push(activation_function(weighted_input));
@@ -51,9 +51,9 @@ impl Layer {
 
     // Adjust weights by the gradient times the learn rate
     pub fn apply_gradients(&mut self, learn_rate: f32) {
-        for i in 0..self.weights.len() {
+        for i in 0..self.nodes_out {
             self.biases[i] -= learn_rate * self.loss_gradient_biases[i];
-            for j in 0..self.weights[0].len() {
+            for j in 0..self.nodes_in {
                 self.weights[i][j] -= learn_rate * self.loss_gradient_weights[i][j];
             }
         }

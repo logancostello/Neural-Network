@@ -64,8 +64,8 @@ impl NeuralNetwork {
         for l in 0..self.layers.len() { // Looping over the index avoids dealing with borrow checker
             
             // Calculate gradient for weights
-            for i in 0..self.layers[l].loss_gradient_weights.len() {
-                for j in 0..self.layers[l].loss_gradient_weights[0].len() {
+            for i in 0..self.layers[l].nodes_out {
+                for j in 0..self.layers[l].nodes_in {
                     self.layers[l].weights[i][j] += h;
                     self.layers[l].loss_gradient_weights[i][j] = (self.loss(training_data) - original_loss) / h;
                     self.layers[l].weights[i][j] -= h;
@@ -73,7 +73,7 @@ impl NeuralNetwork {
             }
 
             // Calculate gradient for biases
-            for i in 0..self.layers[l].loss_gradient_biases.len() {
+            for i in 0..self.layers[l].nodes_out {
                 self.layers[l].biases[i] += h;
                 self.layers[l].loss_gradient_biases[i] = (self.loss(training_data) - original_loss) / h;
                 self.layers[l].biases[i] -= h;
@@ -114,7 +114,7 @@ mod tests {
     // Test loss function
     #[test]
     fn test_loss_1() {
-        let data = vec![DataPoint::new(vec![0.0, 0.0], vec![0.0, 0.0])];
+        let data = vec![DataPoint::new(vec![0.0, 0.0], vec![0, 0])];
         let weights: Vec<Vec<f32>> = vec![vec![1.0, 2.0], vec![3.0, 4.0]];
         let biases: Vec<f32> = vec![20.0, 20.0];
         let layer = Layer::new_manual(weights, biases);
