@@ -15,7 +15,7 @@ impl Layer {
     // Create new Layer with randomly initialized weights
     pub fn new(num_nodes_in: usize, num_nodes_out: usize, is_hidden: bool) -> Self {
         Layer {
-            weights: initialize_weights(num_nodes_in, num_nodes_out),
+            weights: initialize_weights(num_nodes_in, num_nodes_out, is_hidden),
             biases: vec![0.0; num_nodes_out],
             loss_gradient_weights: vec![vec![0.0; num_nodes_in]; num_nodes_out],
             loss_gradient_biases: vec![0.0; num_nodes_out],
@@ -34,7 +34,7 @@ impl Layer {
             for j in 0..self.nodes_in {
                 weighted_input += inputs[j] * self.weights[i][j];
             }
-            activations.push(activation_function(weighted_input));
+            activations.push(self.activation_function(weighted_input));
         }
         activations
     }
@@ -48,16 +48,23 @@ impl Layer {
             }
         }
     }
+
+    // Use ReLU for hidden layers, Sigmoid for final layer
+    pub fn activation_function(&self, weighted_input: f32) -> f32 {
+        if self.is_hidden {
+            return (weighted_input + weighted_input.abs()) / 2.0
+        }
+        1.0 / (1.0 + (-weighted_input).exp())
+    }
 }
 
-// Using the Sigmoid Activation Function
-fn activation_function(weighted_input: f32) -> f32 {
-    1.0 / (1.0 + (-weighted_input).exp())
-}
-
-// Initialize weights using Xavier/Glorot Initialization
-fn initialize_weights(num_nodes_in: usize, num_nodes_out: usize) ->  Vec<Vec<f32>> {
-    let limit: f32 = (6.0 / (num_nodes_in + num_nodes_out) as f32).sqrt();
+// Use He Initialization for hidden layers, Xavier/Glorot Initialization for final layer
+fn initialize_weights(num_nodes_in: usize, num_nodes_out: usize, is_hidden: bool) ->  Vec<Vec<f32>> {
+    let limit: f32 = if is_hidden {
+        (2.0 / num_nodes_in as f32).sqrt() // He 
+    } else {
+        (6.0 / (num_nodes_in + num_nodes_out) as f32).sqrt() // Xavier/Glorot
+    };
     let mut weights: Vec<Vec<f32>> = vec![vec![0.0; num_nodes_in]; num_nodes_out];
     for i in 0..num_nodes_out {
         for j in 0..num_nodes_in {
@@ -66,3 +73,6 @@ fn initialize_weights(num_nodes_in: usize, num_nodes_out: usize) ->  Vec<Vec<f32
     }
     weights
 }
+
+
+
