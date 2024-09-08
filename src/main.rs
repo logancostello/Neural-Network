@@ -1,10 +1,12 @@
 mod layer;
 mod neural_network;
 mod data_point;
+mod data_set;
 
 use crate::data_point::DataPoint;
 use crate::layer::Layer;
 use crate::neural_network::NeuralNetwork;
+use crate::data_set::DataSet;
 use rand::Rng;
 
 fn main() {
@@ -57,12 +59,13 @@ fn generate_curved_test(n: usize) -> Vec<DataPoint> {
 // Test if neural network can learn to identify 2d points separated by a linear line
 fn run_2d_linear_test(learn_rate: f32, nodes_per_layer: Vec<usize>) {
     let mut neural_network = NeuralNetwork::new(nodes_per_layer);
-    let training_data = generate_linear_test(100, -1.0, 4.0);
+    let data = generate_linear_test(10000, -1.0, 4.0);
+    let dataset = DataSet::new(data, 0.2);
     let mut num = 1;
-    println!("Loss: {}, Accuracy: {}", neural_network.loss(&training_data), neural_network.accuracy(&training_data));
-    while neural_network.accuracy(&training_data) < 1.0 {
-        neural_network.learn(&training_data, learn_rate);
-        println!("{num}: Loss: {}, Accuracy: {}", neural_network.loss(&training_data), neural_network.accuracy(&training_data));
+    println!("{num}. Loss: {:.6}, Train: {:.4}, Test: {:.4}", neural_network.loss(&dataset.train), neural_network.accuracy(&dataset.train), neural_network.accuracy(&dataset.test));
+    while neural_network.accuracy(&dataset.train) < 1.0 {
+        neural_network.learn(&dataset.train, learn_rate);
+        println!("{num}. Loss: {:.6}, Train: {:.4}, Test: {:.4}", neural_network.loss(&dataset.train), neural_network.accuracy(&dataset.train), neural_network.accuracy(&dataset.test));
         num += 1;
     }
 }
@@ -70,12 +73,13 @@ fn run_2d_linear_test(learn_rate: f32, nodes_per_layer: Vec<usize>) {
 // Test if neural network can learn to identify 2d points separated by a curved line
 fn run_2d_curved_test(learn_rate: f32, nodes_per_layer: Vec<usize>) {
     let mut neural_network = NeuralNetwork::new(nodes_per_layer);
-    let training_data = generate_curved_test(500);
+    let data = generate_curved_test(500);
+    let dataset = DataSet::new(data, 0.2);
     let mut num = 1;
-    println!("Loss: {}, Accuracy: {}", neural_network.loss(&training_data), neural_network.accuracy(&training_data));
-    while neural_network.accuracy(&training_data) < 1.0 {
-        neural_network.learn(&training_data, learn_rate);
-        println!("{num}: Loss: {}, Accuracy: {}", neural_network.loss(&training_data), neural_network.accuracy(&training_data));
+    println!("{num}. Loss: {:.6}, Train: {:.4}, Test: {:.4}", neural_network.loss(&dataset.train), neural_network.accuracy(&dataset.train), neural_network.accuracy(&dataset.test));
+    while neural_network.accuracy(&dataset.train) < 1.0 {
+        neural_network.learn(&dataset.train, learn_rate);
+        println!("{num}. Loss: {:.6}, Train: {:.4}, Test: {:.4}", neural_network.loss(&dataset.train), neural_network.accuracy(&dataset.train), neural_network.accuracy(&dataset.test));
         num += 1;
     }
 }
