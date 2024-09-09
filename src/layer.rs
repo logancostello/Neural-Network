@@ -7,7 +7,8 @@ pub struct Layer {
     pub loss_gradient_weights: Vec<Vec<f32>>,
     pub loss_gradient_biases: Vec<f32>,
     pub is_hidden: bool,
-    pub weighted_inputs: Vec<f32> // stored for backpropagation
+    pub weighted_inputs: Vec<f32>, // stored for backpropagation
+    pub propagated_values: Vec<f32> // stored for backpropagation
 }
 
 impl Layer {
@@ -22,7 +23,8 @@ impl Layer {
             nodes_in: num_nodes_in,
             nodes_out: num_nodes_out,
             is_hidden: is_hidden,
-            weighted_inputs: vec![0.0; num_nodes_in]
+            weighted_inputs: vec![0.0; num_nodes_in],
+            propagated_values: vec![0.0; num_nodes_out]
         }
 
     }
