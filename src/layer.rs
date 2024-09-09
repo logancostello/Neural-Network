@@ -1,5 +1,4 @@
 // Represents a single layer in a neural network
-#[derive(Clone)]
 pub struct Layer {
     pub nodes_in: usize,
     pub nodes_out: usize,
@@ -7,7 +6,8 @@ pub struct Layer {
     pub biases: Vec<f32>,
     pub loss_gradient_weights: Vec<Vec<f32>>,
     pub loss_gradient_biases: Vec<f32>,
-    pub is_hidden: bool
+    pub is_hidden: bool,
+    pub weighted_inputs: Vec<f32> // stored for backpropagation
 }
 
 impl Layer {
@@ -21,21 +21,23 @@ impl Layer {
             loss_gradient_biases: vec![0.0; num_nodes_out],
             nodes_in: num_nodes_in,
             nodes_out: num_nodes_out,
-            is_hidden: is_hidden
+            is_hidden: is_hidden,
+            weighted_inputs: vec![0.0; num_nodes_in]
         }
 
     }
 
     // Loop through all of the inputs and calculate the outputs
-    pub fn calculate_outputs(&self, inputs: &Vec<f32>) -> Vec<f32> {
+    pub fn calculate_outputs(&mut self, inputs: &Vec<f32>) -> Vec<f32> {
         let mut activations: Vec<f32> = Vec::new();
         for i in 0..self.nodes_out {
-            let mut weighted_input = self.biases[i];
+            let mut output = self.biases[i];
             for j in 0..self.nodes_in {
-                weighted_input += inputs[j] * self.weights[i][j];
+                output += inputs[j] * self.weights[i][j];
             }
-            activations.push(self.activation_function(weighted_input));
+            activations.push(self.activation_function(output));
         }
+        self.weighted_inputs = inputs.clone(); // save the inputs for backpropagation
         activations
     }
 

@@ -18,9 +18,9 @@ impl NeuralNetwork {
     }
 
     // Run the inputs through the network to get the outputs
-    pub fn calculate_outputs(&self, inputs: &Vec<f32>) -> Vec<f32> {
+    pub fn calculate_outputs(&mut self, inputs: &Vec<f32>) -> Vec<f32> {
         let mut inputs_for_next_layer: Vec<f32> = inputs.clone();
-        for layer in &self.layers {
+        for layer in &mut self.layers {
             // The outputs of one layer are the inputs for the next layer
             inputs_for_next_layer = layer.calculate_outputs(&inputs_for_next_layer);
         }
@@ -28,7 +28,7 @@ impl NeuralNetwork {
     }
 
     // Calculate the loss for a given dataset
-    pub fn loss(&self, data: &Vec<DataPoint>) -> f32 {
+    pub fn loss(&mut self, data: &Vec<DataPoint>) -> f32 {
         let mut loss: f32 = 0.0;
 
         // Get loss for each DataPoint
@@ -47,7 +47,7 @@ impl NeuralNetwork {
     }
 
     // Calculate accuracy for a given dataset
-    pub fn accuracy(&self, data: &Vec<DataPoint>) -> f32 {
+    pub fn accuracy(&mut self, data: &Vec<DataPoint>) -> f32 {
         let mut num_correct = 0.0;
 
         // Check expected class is the same as the predicted class
