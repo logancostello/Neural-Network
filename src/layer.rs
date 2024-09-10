@@ -4,11 +4,14 @@ pub struct Layer {
     pub nodes_out: usize,
     pub weights: Vec<Vec<f32>>,
     pub biases: Vec<f32>,
-    pub loss_gradient_weights: Vec<Vec<f32>>,
-    pub loss_gradient_biases: Vec<f32>,
     pub is_hidden: bool,
-    pub weighted_inputs: Vec<f32>, // stored for backpropagation
-    pub propagated_values: Vec<f32> // stored for backpropagation
+
+    // Stored for backpropagation
+    pub inputs: Vec<f32>, 
+    pub outputs: Vec<f32>,
+    pub propagated_values: Vec<f32>,
+    pub loss_gradient_weights: Vec<Vec<f32>>,
+    pub loss_gradient_biases: Vec<f32>
 }
 
 impl Layer {
@@ -23,23 +26,27 @@ impl Layer {
             nodes_in: num_nodes_in,
             nodes_out: num_nodes_out,
             is_hidden: is_hidden,
-            weighted_inputs: vec![0.0; num_nodes_in],
+            inputs: vec![0.0; num_nodes_in],
+            outputs: vec![0.0; num_nodes_out],
             propagated_values: vec![0.0; num_nodes_out]
         }
-
     }
 
     // Loop through all of the inputs and calculate the outputs
     pub fn calculate_outputs(&mut self, inputs: &Vec<f32>) -> Vec<f32> {
         let mut activations: Vec<f32> = Vec::new();
+        let mut outputs: Vec<f32> = Vec::new();
         for i in 0..self.nodes_out {
             let mut output = self.biases[i];
             for j in 0..self.nodes_in {
                 output += inputs[j] * self.weights[i][j];
             }
+            outputs.push(output);
             activations.push(self.activation_function(output));
         }
-        self.weighted_inputs = inputs.clone(); // save the inputs for backpropagation
+        // Save the inputs for backpropagation
+        self.inputs = inputs.clone(); 
+        self.outputs = outputs;
         activations
     }
 
@@ -54,11 +61,19 @@ impl Layer {
     }
 
     // Use ReLU for hidden layers, Sigmoid for final layer
-    pub fn activation_function(&self, weighted_input: f32) -> f32 {
+    pub fn activation_function(&self, output: f32) -> f32 {
         if self.is_hidden {
-            return (weighted_input + weighted_input.abs()) / 2.0
+            return (output + output.abs()) / 2.0
         }
-        1.0 / (1.0 + (-weighted_input).exp())
+        1.0 / (1.0 + (-output).exp())
+    }
+
+    // Derivative with respect to the output (pre-activation value)
+    pub fn activation_derivative(&self, output: f32) -> f32 {
+        if self.is_hidden {
+            return (output + output.abs()) / (2.0 * output.abs())
+        }
+        (-output).exp() / (1.0 + (-output).exp()).powf(2.0)
     }
 }
 
@@ -78,5 +93,7 @@ fn initialize_weights(num_nodes_in: usize, num_nodes_out: usize, is_hidden: bool
     weights
 }
 
-
-
+// With respect to the calculated output
+pub fn loss_derivative(predicted: f32, expected: f32) -> f32 {
+    return 2.0 * (predicted - expected)
+}
