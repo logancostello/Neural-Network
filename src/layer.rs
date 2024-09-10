@@ -50,12 +50,14 @@ impl Layer {
         activations
     }
 
-    // Adjust weights by the gradient times the learn rate
+    // Adjust weights by the gradient times the learn rate. Reset gradients afterwords
     pub fn apply_gradients(&mut self, learn_rate: f32) {
         for i in 0..self.nodes_out {
             self.biases[i] -= learn_rate * self.loss_gradient_biases[i];
+            self.loss_gradient_biases[i] = 0.0;
             for j in 0..self.nodes_in {
                 self.weights[i][j] -= learn_rate * self.loss_gradient_weights[i][j];
+                self.loss_gradient_weights[i][j] = 0.0;
             }
         }
     }
