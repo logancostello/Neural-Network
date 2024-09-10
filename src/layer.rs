@@ -75,6 +75,25 @@ impl Layer {
         }
         (-output).exp() / (1.0 + (-output).exp()).powf(2.0)
     }
+
+    // The first step in backpropagation is updating the gradient of the final layer
+    pub fn update_final_layer_gradient(&mut self, predicted: &Vec<f32>, expected: &Vec<usize>) {
+        for i in 0..self.nodes_out {
+
+            // Calculate and store values that will be propagated
+            let loss_derivative = loss_derivative(predicted[i], expected[i] as f32);
+            let activation_derivative = self.activation_derivative(self.outputs[i]);
+            self.propagated_values[i] = loss_derivative * activation_derivative;
+
+            // Update gradient of biases (derivative of biases is 1)
+            self.loss_gradient_biases[i] = self.propagated_values[i];
+
+            // Update gradient of weights (derivative of weights is the input value)
+            for j in 0..self.nodes_in {
+                self.loss_gradient_weights[i][j] = self.propagated_values[i] * self.inputs[j];
+            }
+        }
+    }
 }
 
 // Use He Initialization for hidden layers, Xavier/Glorot Initialization for final layer
