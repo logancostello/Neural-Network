@@ -10,14 +10,14 @@ use crate::data_set::DataSet;
 use rand::Rng;
 
 fn main() {
-    let learn_rate = 0.25;
+    let learn_rate = 1.0;
     let nodes_per_layer = vec![2, 5, 2];
     run_2d_curved_test(learn_rate, nodes_per_layer);
 }
 
 // Generates n points with two populations, indicating whether they are above or below the given line
 // Meant to be a very simple test for the neural network
-fn generate_linear_test(n: usize, slope: f32, intercept: f32) -> Vec<DataPoint> {
+fn generate_linear_test(n: usize, slope: f64, intercept: f64) -> Vec<DataPoint> {
     let mut training_data: Vec<DataPoint> = vec![];
     let mut rng = rand::thread_rng();
 
@@ -42,8 +42,8 @@ fn generate_curved_test(n: usize) -> Vec<DataPoint> {
     let mut rng = rand::thread_rng();
 
     for _ in 0..n {
-        let x: f32 = rng.gen_range(0.0..10.0);
-        let y: f32 = rng.gen_range(0.0..10.0);
+        let x: f64 = rng.gen_range(0.0..10.0);
+        let y: f64 = rng.gen_range(0.0..10.0);
 
         let expected_output: Vec<usize> = if y >= x.powf(2.0) {
             vec![1, 0]
@@ -57,9 +57,9 @@ fn generate_curved_test(n: usize) -> Vec<DataPoint> {
 }
 
 // Test if neural network can learn to identify 2d points separated by a linear line
-fn run_2d_linear_test(learn_rate: f32, nodes_per_layer: Vec<usize>) {
+fn run_2d_linear_test(learn_rate: f64, nodes_per_layer: Vec<usize>) {
     let mut neural_network = NeuralNetwork::new(nodes_per_layer);
-    let data = generate_linear_test(10000, -1.0, 4.0);
+    let data = generate_linear_test(100, -1.0, 4.0);
     let dataset = DataSet::new(data, 0.2);
     let mut num = 1;
     println!("{num}. Loss: {:.6}, Train: {:.4}, Test: {:.4}", neural_network.loss(&dataset.train), neural_network.accuracy(&dataset.train), neural_network.accuracy(&dataset.test));
@@ -71,7 +71,7 @@ fn run_2d_linear_test(learn_rate: f32, nodes_per_layer: Vec<usize>) {
 }
 
 // Test if neural network can learn to identify 2d points separated by a curved line
-fn run_2d_curved_test(learn_rate: f32, nodes_per_layer: Vec<usize>) {
+fn run_2d_curved_test(learn_rate: f64, nodes_per_layer: Vec<usize>) {
     let mut neural_network = NeuralNetwork::new(nodes_per_layer);
     let data = generate_curved_test(500);
     let dataset = DataSet::new(data, 0.2);
