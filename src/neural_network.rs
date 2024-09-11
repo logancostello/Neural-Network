@@ -62,11 +62,14 @@ impl NeuralNetwork {
     }
 
     // Run a single iteration of Gradient Descent via backpropagation
-    pub fn learn(&mut self, training_data: &Vec<DataPoint>, learn_rate: f64) {
-        for dp in training_data {
-            self.update_gradients(&dp);
+    pub fn learn(&mut self, training_data: &Vec<DataPoint>, learn_rate: f64, batch_size: usize) {
+        let mut mini_batches = training_data.chunks(batch_size);
+        while let Some(mini_batch) = mini_batches.next() {
+            for datapoint in mini_batch {
+                self.update_gradients(&datapoint);
+            }
+            self.apply_all_gradients(learn_rate, training_data.len());
         }
-        self.apply_all_gradients(learn_rate, training_data.len());
     }
 
     // Update all weights and biases in all layers

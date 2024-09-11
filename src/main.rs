@@ -11,8 +11,9 @@ use rand::Rng;
 
 fn main() {
     let learn_rate = 1.0;
+    let batch_size = 50;
     let nodes_per_layer = vec![2, 5, 2];
-    run_2d_curved_test(learn_rate, nodes_per_layer);
+    run_2d_curved_test(learn_rate, nodes_per_layer, batch_size);
 }
 
 // Generates n points with two populations, indicating whether they are above or below the given line
@@ -57,29 +58,29 @@ fn generate_curved_test(n: usize) -> Vec<DataPoint> {
 }
 
 // Test if neural network can learn to identify 2d points separated by a linear line
-fn run_2d_linear_test(learn_rate: f64, nodes_per_layer: Vec<usize>) {
+fn run_2d_linear_test(learn_rate: f64, nodes_per_layer: Vec<usize>, batch_size: usize) {
     let mut neural_network = NeuralNetwork::new(nodes_per_layer);
     let data = generate_linear_test(100, -1.0, 4.0);
     let dataset = DataSet::new(data, 0.2);
     let mut num = 1;
     println!("{num}. Loss: {:.6}, Train: {:.4}, Test: {:.4}", neural_network.loss(&dataset.train), neural_network.accuracy(&dataset.train), neural_network.accuracy(&dataset.test));
     while neural_network.accuracy(&dataset.train) < 1.0 {
-        neural_network.learn(&dataset.train, learn_rate);
+        neural_network.learn(&dataset.train, learn_rate, batch_size);
         println!("{num}. Loss: {:.6}, Train: {:.4}, Test: {:.4}", neural_network.loss(&dataset.train), neural_network.accuracy(&dataset.train), neural_network.accuracy(&dataset.test));
         num += 1;
     }
 }
 
 // Test if neural network can learn to identify 2d points separated by a curved line
-fn run_2d_curved_test(learn_rate: f64, nodes_per_layer: Vec<usize>) {
+fn run_2d_curved_test(learn_rate: f64, nodes_per_layer: Vec<usize>, batch_size: usize) {
     let mut neural_network = NeuralNetwork::new(nodes_per_layer);
     let data = generate_curved_test(500);
     let dataset = DataSet::new(data, 0.2);
     let mut num = 1;
-    println!("{num}. Loss: {:.6}, Train: {:.4}, Test: {:.4}", neural_network.loss(&dataset.train), neural_network.accuracy(&dataset.train), neural_network.accuracy(&dataset.test));
+    println!("Epoch {num}. Loss: {:.6}, Train: {:.4}, Test: {:.4}", neural_network.loss(&dataset.train), neural_network.accuracy(&dataset.train), neural_network.accuracy(&dataset.test));
     while neural_network.accuracy(&dataset.train) < 1.0 {
-        neural_network.learn(&dataset.train, learn_rate);
-        println!("{num}. Loss: {:.6}, Train: {:.4}, Test: {:.4}", neural_network.loss(&dataset.train), neural_network.accuracy(&dataset.train), neural_network.accuracy(&dataset.test));
+        neural_network.learn(&dataset.train, learn_rate, batch_size);
+        println!("Epoch {num}. Loss: {:.6}, Train: {:.4}, Test: {:.4}", neural_network.loss(&dataset.train), neural_network.accuracy(&dataset.train), neural_network.accuracy(&dataset.test));
         num += 1;
     }
 }
