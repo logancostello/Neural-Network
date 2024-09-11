@@ -18,8 +18,8 @@ impl NeuralNetwork {
     }
 
     // Run the inputs through the network to get the outputs
-    pub fn calculate_outputs(&mut self, inputs: &Vec<f32>) -> Vec<f32> {
-        let mut inputs_for_next_layer: Vec<f32> = inputs.clone();
+    pub fn calculate_outputs(&mut self, inputs: &Vec<f64>) -> Vec<f64> {
+        let mut inputs_for_next_layer: Vec<f64> = inputs.clone();
         for layer in &mut self.layers {
             // The outputs of one layer are the inputs for the next layer
             inputs_for_next_layer = layer.calculate_outputs(&inputs_for_next_layer);
@@ -28,26 +28,26 @@ impl NeuralNetwork {
     }
 
     // Calculate the loss for a given dataset
-    pub fn loss(&mut self, data: &Vec<DataPoint>) -> f32 {
-        let mut loss: f32 = 0.0;
+    pub fn loss(&mut self, data: &Vec<DataPoint>) -> f64 {
+        let mut loss: f64 = 0.0;
 
         // Get loss for each DataPoint
         for dp in data {
-            let outputs: Vec<f32> = self.calculate_outputs(&dp.inputs);
+            let outputs: Vec<f64> = self.calculate_outputs(&dp.inputs);
             
             // Add error of each node
             for i in 0..outputs.len() {
-                let error = outputs[i] - dp.expected_outputs[i] as f32;
+                let error = outputs[i] - dp.expected_outputs[i] as f64;
                 loss += error * error;
             }
         }
 
         // Return average loss for consistency across varying amounts of data
-        loss / data.len() as f32
+        loss / data.len() as f64
     }
 
     // Calculate accuracy for a given dataset
-    pub fn accuracy(&mut self, data: &Vec<DataPoint>) -> f32 {
+    pub fn accuracy(&mut self, data: &Vec<DataPoint>) -> f64 {
         let mut num_correct = 0.0;
 
         // Check expected class is the same as the predicted class
@@ -58,13 +58,13 @@ impl NeuralNetwork {
                 num_correct += 1.0;
             }
         }
-        num_correct / data.len() as f32
+        num_correct / data.len() as f64
     }
 
     // Run a single iteration of Gradient Descent
-    pub fn learn(&mut self, training_data: &Vec<DataPoint>, learn_rate: f32) {
-        let h: f32 = 0.0001; // A small step to get the slope
-        let original_loss: f32 = self.loss(training_data);
+    pub fn learn2(&mut self, training_data: &Vec<DataPoint>, learn_rate: f64) {
+        let h: f64 = 0.0001; // A small step to get the slope
+        let original_loss: f64 = self.loss(training_data);
         
         for l in 0..self.layers.len() { // Looping over the index avoids issues raised by the borrow checker
             
@@ -84,17 +84,25 @@ impl NeuralNetwork {
                 self.layers[l].biases[i] -= h;
             }
         }
-        self.apply_all_gradients(learn_rate);
+        // self.apply_all_gradients(learn_rate);
+    }
+
+    // Run a single iteration of Gradient Descent via backpropagation
+    pub fn learn(&mut self, training_data: &Vec<DataPoint>, learn_rate: f64) {
+        for dp in training_data {
+            self.update_gradients(&dp);
+        }
+        self.apply_all_gradients(learn_rate, training_data.len());
     }
 
     // Update all weights and biases in all layers
-    pub fn apply_all_gradients(&mut self, learn_rate: f32) {
+    pub fn apply_all_gradients(&mut self, learn_rate: f64, batch_size: usize) {
         for layer in &mut self.layers {
-            layer.apply_gradients(learn_rate);
+            layer.apply_gradients(learn_rate, batch_size);
         }
     }
 
-    // Update gradients using backpropagation
+    // Update gradients using backpropagation for a single point
     pub fn update_gradients(&mut self, datapoint: &DataPoint) {
 
         // Run the point through the network, storing the information we need for backpropagation
@@ -124,11 +132,11 @@ impl NeuralNetwork {
             self.layers[layer_index].propagated_values[i] = activation_derivative * following_layer_values;
 
             // Update gradient of biases (derivative of biases is 1)
-            self.layers[layer_index].loss_gradient_biases[i] = self.layers[layer_index].propagated_values[i];
+            self.layers[layer_index].loss_gradient_biases[i] += self.layers[layer_index].propagated_values[i];
 
             // Update gradient of weights (derivative of weights is the input value)
             for j in 0..self.layers[layer_index].nodes_in {
-                self.layers[layer_index].loss_gradient_weights[i][j] = self.layers[layer_index].propagated_values[i] * self.layers[layer_index].inputs[j];
+                self.layers[layer_index].loss_gradient_weights[i][j] += self.layers[layer_index].propagated_values[i] * self.layers[layer_index].inputs[j];
             }
         }
     }
@@ -136,6 +144,7 @@ impl NeuralNetwork {
 } 
 
 // Indicate class by returning the index of the greatest output
-pub fn classify(nn_outputs: &Vec<f32>) -> usize {
+pub fn classify(nn_outputs: &Vec<f64>) -> usize {
+    // println!("{} {}", nn_outputs[0], nn_outputs[1]);
     nn_outputs.iter().enumerate().max_by(|&(_, a), &(_, b)| a.partial_cmp(b).unwrap()).map(|(index, _)| index).unwrap()
 }
