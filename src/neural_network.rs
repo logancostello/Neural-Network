@@ -61,32 +61,6 @@ impl NeuralNetwork {
         num_correct / data.len() as f64
     }
 
-    // Run a single iteration of Gradient Descent
-    pub fn learn2(&mut self, training_data: &Vec<DataPoint>, learn_rate: f64) {
-        let h: f64 = 0.0001; // A small step to get the slope
-        let original_loss: f64 = self.loss(training_data);
-        
-        for l in 0..self.layers.len() { // Looping over the index avoids issues raised by the borrow checker
-            
-            // Calculate gradient for weights
-            for i in 0..self.layers[l].nodes_out {
-                for j in 0..self.layers[l].nodes_in {
-                    self.layers[l].weights[i][j] += h;
-                    self.layers[l].loss_gradient_weights[i][j] = (self.loss(training_data) - original_loss) / h;
-                    self.layers[l].weights[i][j] -= h;
-                }
-            }
-
-            // Calculate gradient for biases
-            for i in 0..self.layers[l].nodes_out {
-                self.layers[l].biases[i] += h;
-                self.layers[l].loss_gradient_biases[i] = (self.loss(training_data) - original_loss) / h;
-                self.layers[l].biases[i] -= h;
-            }
-        }
-        // self.apply_all_gradients(learn_rate);
-    }
-
     // Run a single iteration of Gradient Descent via backpropagation
     pub fn learn(&mut self, training_data: &Vec<DataPoint>, learn_rate: f64) {
         for dp in training_data {
@@ -145,6 +119,5 @@ impl NeuralNetwork {
 
 // Indicate class by returning the index of the greatest output
 pub fn classify(nn_outputs: &Vec<f64>) -> usize {
-    // println!("{} {}", nn_outputs[0], nn_outputs[1]);
     nn_outputs.iter().enumerate().max_by(|&(_, a), &(_, b)| a.partial_cmp(b).unwrap()).map(|(index, _)| index).unwrap()
 }
