@@ -1,5 +1,7 @@
 use crate::layer::Layer;
 use crate::data_point::DataPoint;
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 
 pub struct NeuralNetwork {
     layers: Vec<Layer>
@@ -62,7 +64,8 @@ impl NeuralNetwork {
     }
 
     // Run a single iteration of Gradient Descent via backpropagation
-    pub fn learn(&mut self, training_data: &Vec<DataPoint>, learn_rate: f64, batch_size: usize) {
+    pub fn learn(&mut self, training_data: &mut Vec<DataPoint>, learn_rate: f64, batch_size: usize) {
+        training_data.shuffle(&mut thread_rng());
         let mut mini_batches = training_data.chunks(batch_size);
         while let Some(mini_batch) = mini_batches.next() {
             for datapoint in mini_batch {

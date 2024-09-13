@@ -61,11 +61,11 @@ fn generate_curved_test(n: usize) -> Vec<DataPoint> {
 fn run_2d_linear_test(learn_rate: f64, nodes_per_layer: Vec<usize>, batch_size: usize) {
     let mut neural_network = NeuralNetwork::new(nodes_per_layer);
     let data = generate_linear_test(100, -1.0, 4.0);
-    let dataset = DataSet::new(data, 0.2);
+    let mut dataset = DataSet::new(data, 0.2);
     let mut num = 1;
     println!("{num}. Loss: {:.6}, Train: {:.4}, Test: {:.4}", neural_network.loss(&dataset.train), neural_network.accuracy(&dataset.train), neural_network.accuracy(&dataset.test));
     while neural_network.accuracy(&dataset.train) < 1.0 {
-        neural_network.learn(&dataset.train, learn_rate, batch_size);
+        neural_network.learn(&mut dataset.train, learn_rate, batch_size);
         println!("{num}. Loss: {:.6}, Train: {:.4}, Test: {:.4}", neural_network.loss(&dataset.train), neural_network.accuracy(&dataset.train), neural_network.accuracy(&dataset.test));
         num += 1;
     }
@@ -75,11 +75,11 @@ fn run_2d_linear_test(learn_rate: f64, nodes_per_layer: Vec<usize>, batch_size: 
 fn run_2d_curved_test(learn_rate: f64, nodes_per_layer: Vec<usize>, batch_size: usize) {
     let mut neural_network = NeuralNetwork::new(nodes_per_layer);
     let data = generate_curved_test(500);
-    let dataset = DataSet::new(data, 0.2);
+    let mut dataset = DataSet::new(data, 0.2);
     let mut num = 1;
     println!("Epoch {num}. Loss: {:.6}, Train: {:.4}, Test: {:.4}", neural_network.loss(&dataset.train), neural_network.accuracy(&dataset.train), neural_network.accuracy(&dataset.test));
     while neural_network.accuracy(&dataset.train) < 1.0 {
-        neural_network.learn(&dataset.train, learn_rate, batch_size);
+        neural_network.learn(&mut dataset.train, learn_rate, batch_size);
         println!("Epoch {num}. Loss: {:.6}, Train: {:.4}, Test: {:.4}", neural_network.loss(&dataset.train), neural_network.accuracy(&dataset.train), neural_network.accuracy(&dataset.test));
         num += 1;
     }
