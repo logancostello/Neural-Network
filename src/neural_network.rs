@@ -29,7 +29,7 @@ impl NeuralNetwork {
         inputs_for_next_layer
     }
 
-    // Calculate the loss for a given dataset
+    // Multiclass cross entropy loss
     pub fn loss(&mut self, data: &Vec<DataPoint>) -> f64 {
         let mut loss: f64 = 0.0;
 
