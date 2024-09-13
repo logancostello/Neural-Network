@@ -10,7 +10,7 @@ use crate::data_set::DataSet;
 use rand::Rng;
 
 fn main() {
-    let learn_rate = 1.0;
+    let learn_rate = 0.25;
     let batch_size = 50;
     let nodes_per_layer = vec![2, 5, 2];
     run_2d_curved_test(learn_rate, nodes_per_layer, batch_size);

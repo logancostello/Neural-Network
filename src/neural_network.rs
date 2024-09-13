@@ -37,10 +37,15 @@ impl NeuralNetwork {
         for dp in data {
             let outputs: Vec<f64> = self.calculate_outputs(&dp.inputs);
             
-            // Add error of each node
+            // Add loss of each node
             for i in 0..outputs.len() {
-                let error = outputs[i] - dp.expected_outputs[i] as f64;
-                loss += error * error;
+                // let error = outputs[i] - dp.expected_outputs[i] as f64;
+                // loss += error * error;
+                if outputs[i] == 0.0 {
+                    loss -= dp.expected_outputs[i] as f64 * (f64::EPSILON).ln();
+                } else {
+                    loss -= dp.expected_outputs[i] as f64 * outputs[i].ln();
+                }
             }
         }
 

@@ -116,5 +116,6 @@ fn initialize_weights(num_nodes_in: usize, num_nodes_out: usize, is_hidden: bool
 
 // With respect to the calculated output
 pub fn loss_derivative(predicted: f64, expected: f64) -> f64 {
-    return 2.0 * (predicted - expected)
+    // 2.0 * (predicted - expected)
+    predicted - expected
 }
