@@ -84,3 +84,8 @@ fn run_2d_curved_test(learn_rate: f64, nodes_per_layer: Vec<usize>, batch_size: 
         num += 1;
     }
 }
+
+// Reads the MNIST dataset files, making them ready for the network to read
+fn get_mnist() {
+    
+}
