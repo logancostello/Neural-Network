@@ -35,7 +35,7 @@ impl Layer {
     }
 
     // Adjust weights by the gradient times the learn rate. Reset gradients afterwords
-    pub fn apply_gradients(&mut self, learn_rate: f64, batch_size: usize) {
+    pub fn apply_1gradients(&mut self, learn_rate: f64, batch_size: usize) {
         for i in 0..self.nodes_out {
             self.biases[i] -= learn_rate * (self.loss_gradient_biases[i] / batch_size as f64);
             self.loss_gradient_biases[i] = 0.0;
@@ -44,6 +44,16 @@ impl Layer {
                 self.loss_gradient_weights[(i, j)] = 0.0;
             }
         }
+    }
+
+    // Adjust weights and biases by the gradient times the learn rate. Reset gradients afterwords
+    pub fn apply_gradients(&mut self, learn_rate: f64, batch_size: usize) {
+        let bias_update: Array1<f64> = (&self.loss_gradient_biases / batch_size as f64) * learn_rate;
+        self.biases -= &(&self.loss_gradient_biases / batch_size as f64 * learn_rate);
+        self.weights -= &(&self.loss_gradient_weights / batch_size as f64 * learn_rate);
+        self.loss_gradient_biases.fill(0.0);
+        self.loss_gradient_weights.fill(0.0);
+
     }
 
     // Use ReLU for hidden layers, Sigmoid for final layer
