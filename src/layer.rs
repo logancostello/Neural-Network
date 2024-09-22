@@ -58,15 +58,22 @@ impl Layer {
         if self.is_hidden {
             return (output + output.abs()) / 2.0
         }
+        // Handle negative values that cause Nan
+        if output < -709.78 {
+            return 0.0; 
+        }
+    
         1.0 / (1.0 + (-output).exp())
     }
 
     // Derivative with respect to the output (pre-activation value)
     pub fn activation_derivative(&self, output: f64) -> f64 {
         if self.is_hidden {
-            return (output + output.abs()) / (2.0 * output.abs()) 
+            // return (output + output.abs()) / (2.0 * output.abs()) 
+            return if output > 0.0 {1.0} else {0.0}
         }
-        (-output).exp() / (1.0 + (-output).exp()).powf(2.0)
+        let sigmoid_output = 1.0 / (1.0 + (-output).exp());
+        return sigmoid_output * (1.0 - sigmoid_output);
     }
 
     // The first step in backpropagation is updating the gradient of the final layer
@@ -78,8 +85,6 @@ impl Layer {
             let loss_derivative = loss_derivative(predicted[i], expected[i] as f64);
             let activation_derivative = self.activation_derivative(outputs[i]);
             propagated_values[i] = loss_derivative * activation_derivative;
-            // self.propagated_values[i] = loss_derivative * activation_derivative;
-
 
             // Update gradient of biases (derivative of biases is 1)
             self.loss_gradient_biases[i] += propagated_values[i];
@@ -112,6 +117,5 @@ fn initialize_weights(num_nodes_in: usize, num_nodes_out: usize, is_hidden: bool
 
 // With respect to the calculated output
 pub fn loss_derivative(predicted: f64, expected: f64) -> f64 {
-    // 2.0 * (predicted - expected)
     predicted - expected
 }

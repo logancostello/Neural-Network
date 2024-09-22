@@ -3,6 +3,7 @@ use crate::data_point::DataPoint;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 use rayon::prelude::*;
+use std::sync::{Arc, Mutex};
 
 
 pub struct NeuralNetwork {
@@ -77,14 +78,28 @@ impl NeuralNetwork {
     // Run a single iteration of Gradient Descent via backpropagation
     pub fn learn(&mut self, training_data: &mut Vec<DataPoint>, learn_rate: f64, batch_size: usize) {
         training_data.shuffle(&mut thread_rng());
-        let mut mini_batches = training_data.chunks(batch_size);
+        let mini_batches: Vec<&[DataPoint]> = training_data.chunks(batch_size).collect();
+    
+        // Wrap `self` in Arc<Mutex<...>> for safe shared access
+        let self_arc = Arc::new(Mutex::new(self));
+    
         for mini_batch in mini_batches {
-            for datapoint in mini_batch {
-                self.update_gradients(&datapoint);
+            // Process each data point in the mini_batch in parallel
+            mini_batch.par_iter().for_each(|datapoint| {
+                let self_clone = Arc::clone(&self_arc); // Clone the Arc to share it with the threads
+                
+                let mut instance = self_clone.lock().unwrap(); // Lock the mutex to get mutable access
+                instance.update_gradients(&datapoint);
+            });
+    
+            // Lock the mutex again to apply gradients after all updates
+            {
+                let mut instance = self_arc.lock().unwrap();
+                instance.apply_all_gradients(learn_rate, training_data.len());
             }
-            self.apply_all_gradients(learn_rate, training_data.len());
         }
     }
+    
 
     // Update all weights and biases in all layers
     pub fn apply_all_gradients(&mut self, learn_rate: f64, batch_size: usize) {
