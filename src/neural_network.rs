@@ -20,13 +20,17 @@ impl NeuralNetwork {
     }
 
     // Run the inputs through the network to get the outputs
-    pub fn calculate_outputs(&mut self, inputs: &Vec<f64>) -> Vec<f64> {
+    // Additionally record the inputs and outputs of each layer for backpropagation
+    pub fn calculate_outputs(&mut self, inputs: &Vec<f64>) -> (Vec<f64>, Vec<(Vec<f64>, Vec<f64>)>) {
+        let mut history: Vec<(Vec<f64>, Vec<f64>)> = Vec::new();
         let mut inputs_for_next_layer: Vec<f64> = inputs.clone();
         for layer in &mut self.layers {
             // The outputs of one layer are the inputs for the next layer
-            inputs_for_next_layer = layer.calculate_outputs(&inputs_for_next_layer);
+            let (outputs, layer_history) = layer.calculate_outputs(&inputs_for_next_layer);
+            inputs_for_next_layer = outputs;
+            history.push(layer_history);
         }
-        inputs_for_next_layer
+        (inputs_for_next_layer, history)
     }
 
     // Multiclass cross entropy loss
@@ -35,7 +39,7 @@ impl NeuralNetwork {
 
         // Get loss for each DataPoint
         for dp in data {
-            let outputs: Vec<f64> = self.calculate_outputs(&dp.inputs);
+            let (outputs, _) = self.calculate_outputs(&dp.inputs);
             
             // Add loss of each node
             for i in 0..outputs.len() {
@@ -57,7 +61,7 @@ impl NeuralNetwork {
 
         // Check expected class is the same as the predicted class
         for dp in data {
-            let outputs = self.calculate_outputs(&dp.inputs);
+            let (outputs, _) = self.calculate_outputs(&dp.inputs);
             let predicted_class: usize = classify(&outputs);
             if dp.expected_outputs[predicted_class] == 1 {
                 num_correct += 1.0;
@@ -89,26 +93,28 @@ impl NeuralNetwork {
     pub fn update_gradients(&mut self, datapoint: &DataPoint) {
 
         // Run the point through the network, storing the information we need for backpropagation
-        let predicted = self.calculate_outputs(&datapoint.inputs);
+        let (predicted, mut history) = self.calculate_outputs(&datapoint.inputs);
 
         // Update gradient of the final layer
         let final_layer_index: usize = self.layers.len() - 1;
-        let mut propagated = self.layers[final_layer_index].update_final_layer_gradient(&predicted, &datapoint.expected_outputs);
+        let (inputs, outputs) = history.pop().unwrap();
+        let mut propagated = self.layers[final_layer_index].update_final_layer_gradient(&predicted, &datapoint.expected_outputs, &inputs, &outputs);
         
         // Update the gradients of all of the hidden layers 
         for index in (0..final_layer_index).rev() {
-            propagated = self.update_hidden_layer_gradient(index, &propagated);
+            let (inputs, outputs) = history.pop().unwrap();
+            propagated = self.update_hidden_layer_gradient(index, &propagated, &inputs, &outputs);
         }
     }
 
     // Update the gradients of the given layer by using the propagated values from the following layers
     // Ideally this could be a Layer method, there becomes ownership issues when the layer needs the values from the following layer
-    pub fn update_hidden_layer_gradient(&mut self, layer_index: usize, prev_propagated_values: &Vec<f64>) -> Vec<f64> {
+    pub fn update_hidden_layer_gradient(&mut self, layer_index: usize, prev_propagated_values: &Vec<f64>, inputs: &Vec<f64>, outputs: &Vec<f64>) -> Vec<f64> {
         let mut propagated_values: Vec<f64> = vec![0.0; self.layers[layer_index].biases.len()];
         for i in 0..self.layers[layer_index].nodes_out {
 
             // Calculate and store values that will be propagated
-            let activation_derivative = self.layers[layer_index].activation_derivative(self.layers[layer_index].outputs[i]);
+            let activation_derivative = self.layers[layer_index].activation_derivative(outputs[i]);
             let mut following_layer_values = 0.0;
             for j in 0..self.layers[layer_index + 1].nodes_out {
                 following_layer_values += prev_propagated_values[j] * self.layers[layer_index + 1].weights[j][i];
@@ -120,7 +126,7 @@ impl NeuralNetwork {
 
             // Update gradient of weights (derivative of weights is the input value)
             for j in 0..self.layers[layer_index].nodes_in {
-                self.layers[layer_index].loss_gradient_weights[i][j] += propagated_values[i] * self.layers[layer_index].inputs[j];
+                self.layers[layer_index].loss_gradient_weights[i][j] += propagated_values[i] * inputs[j];
             }
         }
         propagated_values
