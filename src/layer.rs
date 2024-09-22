@@ -1,4 +1,4 @@
-use ndarray::{Array2, Array1};
+use ndarray::{Array2, Array1, Axis};
 
 // Represents a single layer in a neural network
 pub struct Layer {
@@ -27,33 +27,19 @@ impl Layer {
     }
 
     // In addition to calculating layer outputs, store needed information for backpropagation
-    pub fn calculate_outputs(&self, inputs: &Array1<f64>) -> (Array1<f64>, (Array1<f64>, Array1<f64>)) {
-        let outputs: Array1<f64> = self.weights.dot(inputs) + &self.biases;
+    pub fn calculate_outputs(&self, inputs: Array1<f64>) -> (Array1<f64>, (Array1<f64>, Array1<f64>)) {
+        let outputs: Array1<f64> = self.weights.dot(&inputs) + &self.biases;
         let activations: Array1<f64> = outputs.mapv(|output| self.activation_function(output));
 
-        (activations, (inputs.clone(), outputs))
-    }
-
-    // Adjust weights by the gradient times the learn rate. Reset gradients afterwords
-    pub fn apply_1gradients(&mut self, learn_rate: f64, batch_size: usize) {
-        for i in 0..self.nodes_out {
-            self.biases[i] -= learn_rate * (self.loss_gradient_biases[i] / batch_size as f64);
-            self.loss_gradient_biases[i] = 0.0;
-            for j in 0..self.nodes_in {
-                self.weights[(i, j)] -= learn_rate * (self.loss_gradient_weights[(i, j)] / batch_size as f64);
-                self.loss_gradient_weights[(i, j)] = 0.0;
-            }
-        }
+        (activations, (inputs, outputs))
     }
 
     // Adjust weights and biases by the gradient times the learn rate. Reset gradients afterwords
     pub fn apply_gradients(&mut self, learn_rate: f64, batch_size: usize) {
-        let bias_update: Array1<f64> = (&self.loss_gradient_biases / batch_size as f64) * learn_rate;
         self.biases -= &(&self.loss_gradient_biases / batch_size as f64 * learn_rate);
         self.weights -= &(&self.loss_gradient_weights / batch_size as f64 * learn_rate);
         self.loss_gradient_biases.fill(0.0);
         self.loss_gradient_weights.fill(0.0);
-
     }
 
     // Use ReLU for hidden layers, Sigmoid for final layer

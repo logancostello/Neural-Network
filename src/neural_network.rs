@@ -30,7 +30,7 @@ impl NeuralNetwork {
         let mut inputs_for_next_layer: Array1<f64> = inputs.clone();
         for layer in &self.layers {
             // The outputs of one layer are the inputs for the next layer
-            let (outputs, layer_history) = layer.calculate_outputs(&inputs_for_next_layer);
+            let (outputs, layer_history) = layer.calculate_outputs(inputs_for_next_layer);
             inputs_for_next_layer = outputs;
             history.push(layer_history);
         }
