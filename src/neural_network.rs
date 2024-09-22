@@ -39,8 +39,6 @@ impl NeuralNetwork {
             
             // Add loss of each node
             for i in 0..outputs.len() {
-                // let error = outputs[i] - dp.expected_outputs[i] as f64;
-                // loss += error * error;
                 if outputs[i] == 0.0 {
                     loss -= dp.expected_outputs[i] as f64 * (f64::EPSILON).ln();
                 } else {
@@ -95,35 +93,37 @@ impl NeuralNetwork {
 
         // Update gradient of the final layer
         let final_layer_index: usize = self.layers.len() - 1;
-        self.layers[final_layer_index].update_final_layer_gradient(&predicted, &datapoint.expected_outputs);
+        let mut propagated = self.layers[final_layer_index].update_final_layer_gradient(&predicted, &datapoint.expected_outputs);
         
         // Update the gradients of all of the hidden layers 
         for index in (0..final_layer_index).rev() {
-            self.update_hidden_layer_gradient(index);
+            propagated = self.update_hidden_layer_gradient(index, &propagated);
         }
     }
 
     // Update the gradients of the given layer by using the propagated values from the following layers
     // Ideally this could be a Layer method, there becomes ownership issues when the layer needs the values from the following layer
-    pub fn update_hidden_layer_gradient(&mut self, layer_index: usize) {
+    pub fn update_hidden_layer_gradient(&mut self, layer_index: usize, prev_propagated_values: &Vec<f64>) -> Vec<f64> {
+        let mut propagated_values: Vec<f64> = vec![0.0; self.layers[layer_index].biases.len()];
         for i in 0..self.layers[layer_index].nodes_out {
 
             // Calculate and store values that will be propagated
             let activation_derivative = self.layers[layer_index].activation_derivative(self.layers[layer_index].outputs[i]);
             let mut following_layer_values = 0.0;
             for j in 0..self.layers[layer_index + 1].nodes_out {
-                following_layer_values += self.layers[layer_index + 1].propagated_values[j] * self.layers[layer_index + 1].weights[j][i];
+                following_layer_values += prev_propagated_values[j] * self.layers[layer_index + 1].weights[j][i];
             }
-            self.layers[layer_index].propagated_values[i] = activation_derivative * following_layer_values;
+            propagated_values[i] = activation_derivative * following_layer_values;
 
             // Update gradient of biases (derivative of biases is 1)
-            self.layers[layer_index].loss_gradient_biases[i] += self.layers[layer_index].propagated_values[i];
+            self.layers[layer_index].loss_gradient_biases[i] += propagated_values[i];
 
             // Update gradient of weights (derivative of weights is the input value)
             for j in 0..self.layers[layer_index].nodes_in {
-                self.layers[layer_index].loss_gradient_weights[i][j] += self.layers[layer_index].propagated_values[i] * self.layers[layer_index].inputs[j];
+                self.layers[layer_index].loss_gradient_weights[i][j] += propagated_values[i] * self.layers[layer_index].inputs[j];
             }
         }
+        propagated_values
     }
 
 } 

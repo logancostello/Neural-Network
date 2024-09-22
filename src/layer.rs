@@ -9,7 +9,6 @@ pub struct Layer {
     // Stored for backpropagation
     pub inputs: Vec<f64>, 
     pub outputs: Vec<f64>,
-    pub propagated_values: Vec<f64>,
     pub loss_gradient_weights: Vec<Vec<f64>>,
     pub loss_gradient_biases: Vec<f64>
 }
@@ -28,7 +27,6 @@ impl Layer {
             is_hidden: is_hidden,
             inputs: vec![0.0; num_nodes_in],
             outputs: vec![0.0; num_nodes_out],
-            propagated_values: vec![0.0; num_nodes_out]
         }
     }
 
@@ -79,22 +77,27 @@ impl Layer {
     }
 
     // The first step in backpropagation is updating the gradient of the final layer
-    pub fn update_final_layer_gradient(&mut self, predicted: &Vec<f64>, expected: &Vec<usize>) {
+    pub fn update_final_layer_gradient(&mut self, predicted: &Vec<f64>, expected: &Vec<usize>) -> Vec<f64> {
+        let mut propagated_values: Vec<f64> = vec![0.0; self.biases.len()];
         for i in 0..self.nodes_out {
 
             // Calculate and store values that will be propagated
             let loss_derivative = loss_derivative(predicted[i], expected[i] as f64);
             let activation_derivative = self.activation_derivative(self.outputs[i]);
-            self.propagated_values[i] = loss_derivative * activation_derivative;
+            propagated_values[i] = loss_derivative * activation_derivative;
+            // self.propagated_values[i] = loss_derivative * activation_derivative;
+
 
             // Update gradient of biases (derivative of biases is 1)
-            self.loss_gradient_biases[i] += self.propagated_values[i];
+            self.loss_gradient_biases[i] += propagated_values[i];
 
             // Update gradient of weights (derivative of weights is the input value)
             for j in 0..self.nodes_in {
-                self.loss_gradient_weights[i][j] += self.propagated_values[i] * self.inputs[j];
+                self.loss_gradient_weights[i][j] += propagated_values[i] * self.inputs[j];
             }
         }
+        // Return propagated values for the next layers to use
+        propagated_values
     }
 }
 
