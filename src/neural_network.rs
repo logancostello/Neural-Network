@@ -4,6 +4,7 @@ use rand::seq::SliceRandom;
 use rand::thread_rng;
 use rayon::prelude::*;
 use std::sync::{Arc, Mutex};
+use ndarray::{Array2, Array1};
 
 
 pub struct NeuralNetwork {
@@ -24,9 +25,9 @@ impl NeuralNetwork {
 
     // Run the inputs through the network to get the outputs
     // Additionally record the inputs and outputs of each layer for backpropagation
-    pub fn calculate_outputs(&self, inputs: &Vec<f64>) -> (Vec<f64>, Vec<(Vec<f64>, Vec<f64>)>) {
-        let mut history: Vec<(Vec<f64>, Vec<f64>)> = Vec::new();
-        let mut inputs_for_next_layer: Vec<f64> = inputs.clone();
+    pub fn calculate_outputs(&self, inputs: &Array1<f64>) -> (Array1<f64>, Vec<(Array1<f64>, Array1<f64>)>) {
+        let mut history: Vec<(Array1<f64>, Array1<f64>)> = Vec::new();
+        let mut inputs_for_next_layer: Array1<f64> = inputs.clone();
         for layer in &self.layers {
             // The outputs of one layer are the inputs for the next layer
             let (outputs, layer_history) = layer.calculate_outputs(&inputs_for_next_layer);
@@ -75,6 +76,7 @@ impl NeuralNetwork {
     
     // Run a single iteration of Gradient Descent via backpropagation
     pub fn learn(&mut self, training_data: &mut Vec<DataPoint>, learn_rate: f64, batch_size: usize) {
+
         training_data.shuffle(&mut thread_rng());
         let mini_batches: Vec<&[DataPoint]> = training_data.chunks(batch_size).collect();
     
@@ -125,8 +127,8 @@ impl NeuralNetwork {
 
     // Update the gradients of the given layer by using the propagated values from the following layers
     // Ideally this could be a Layer method, there becomes ownership issues when the layer needs the values from the following layer
-    pub fn update_hidden_layer_gradient(&mut self, layer_index: usize, prev_propagated_values: &Vec<f64>, inputs: &Vec<f64>, outputs: &Vec<f64>) -> Vec<f64> {
-        let mut propagated_values: Vec<f64> = vec![0.0; self.layers[layer_index].biases.len()];
+    pub fn update_hidden_layer_gradient(&mut self, layer_index: usize, prev_propagated_values: &Array1<f64>, inputs: &Array1<f64>, outputs: &Array1<f64>) -> Array1<f64> {
+        let mut propagated_values: Array1<f64> = Array1::zeros(self.layers[layer_index].nodes_out);
         for i in 0..self.layers[layer_index].nodes_out {
 
             // Calculate and store values that will be propagated
@@ -147,10 +149,9 @@ impl NeuralNetwork {
         }
         propagated_values
     }
-
 } 
 
 // Indicate class by returning the index of the greatest output
-pub fn classify(nn_outputs: &Vec<f64>) -> usize {
+pub fn classify(nn_outputs: &Array1<f64>) -> usize {
     nn_outputs.iter().enumerate().max_by(|&(_, a), &(_, b)| a.partial_cmp(b).unwrap()).map(|(index, _)| index).unwrap()
 }

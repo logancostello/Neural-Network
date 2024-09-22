@@ -11,6 +11,7 @@ use rand::Rng;
 use std::fs::File;
 use std::io::{self, Read, BufReader};
 use std::error::Error;
+use ndarray::{Array2, Array1};
 
 
 fn main() {

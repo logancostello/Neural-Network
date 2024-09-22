@@ -28,9 +28,9 @@ impl Layer {
 
     // Loop through all of the inputs and calculate the outputs
     // Additionally return the inputs and outputs for backpropagation
-    pub fn calculate_outputs(&self, inputs: &Vec<f64>) -> (Vec<f64>, (Vec<f64>, Vec<f64>)) {
-        let mut activations: Vec<f64> = vec![0.0; self.nodes_out];
-        let mut outputs: Vec<f64> = vec![0.0; self.nodes_out];
+    pub fn calculate_outputs(&self, inputs: &Array1<f64>) -> (Array1<f64>, (Array1<f64>, Array1<f64>)) {
+        let mut activations = Array1::zeros(self.nodes_out);
+        let mut outputs = Array1::zeros(self.nodes_out);
         for i in 0..self.nodes_out {
             let mut output = self.biases[i];
             for j in 0..self.nodes_in {
@@ -78,8 +78,8 @@ impl Layer {
     }
 
     // The first step in backpropagation is updating the gradient of the final layer
-    pub fn update_final_layer_gradient(&mut self, predicted: &Vec<f64>, expected: &Vec<usize>, inputs: &Vec<f64>, outputs: &Vec<f64>) -> Vec<f64> {
-        let mut propagated_values: Vec<f64> = vec![0.0; self.biases.len()];
+    pub fn update_final_layer_gradient(&mut self, predicted: &Array1<f64>, expected: &Array1<usize>, inputs: &Array1<f64>, outputs: &Array1<f64>) -> Array1<f64> {
+        let mut propagated_values: Array1<f64> = Array1::zeros(self.nodes_out);
         for i in 0..self.nodes_out {
 
             // Calculate and store values that will be propagated

@@ -12,6 +12,9 @@ impl DataSet {
         let split_index = (data.len() as f64 * test_pct).ceil() as usize;
         let train = data.split_off(split_index);
 
-        DataSet { train, test: data }
+        DataSet { 
+            train: train,
+            test: data 
+        }
     }
 }
