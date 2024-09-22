@@ -26,20 +26,11 @@ impl Layer {
         }
     }
 
-    // Loop through all of the inputs and calculate the outputs
-    // Additionally return the inputs and outputs for backpropagation
+    // In addition to calculating layer outputs, store needed information for backpropagation
     pub fn calculate_outputs(&self, inputs: &Array1<f64>) -> (Array1<f64>, (Array1<f64>, Array1<f64>)) {
-        let mut activations = Array1::zeros(self.nodes_out);
-        let mut outputs = Array1::zeros(self.nodes_out);
-        for i in 0..self.nodes_out {
-            let mut output = self.biases[i];
-            for j in 0..self.nodes_in {
-                output += inputs[j] * self.weights[(i, j)];
-            }
-            outputs[i] = output;
-            activations[i] = self.activation_function(output);
-        }
-        // Save the inputs for backpropagation
+        let outputs: Array1<f64> = self.weights.dot(inputs) + &self.biases;
+        let activations: Array1<f64> = outputs.mapv(|output| self.activation_function(output));
+
         (activations, (inputs.clone(), outputs))
     }
 
