@@ -1,12 +1,14 @@
+use ndarray::{Array2, Array1};
+
 // Represents a single layer in a neural network
 pub struct Layer {
     pub nodes_in: usize,
     pub nodes_out: usize,
-    pub weights: Vec<Vec<f64>>,
-    pub biases: Vec<f64>,
+    pub weights: Array2<f64>,
+    pub biases: Array1<f64>,
     pub is_hidden: bool,
-    pub loss_gradient_weights: Vec<Vec<f64>>,
-    pub loss_gradient_biases: Vec<f64>
+    pub loss_gradient_weights: Array2<f64>,
+    pub loss_gradient_biases: Array1<f64>
 }
 
 impl Layer {
@@ -15,9 +17,9 @@ impl Layer {
     pub fn new(num_nodes_in: usize, num_nodes_out: usize, is_hidden: bool) -> Self {
         Layer {
             weights: initialize_weights(num_nodes_in, num_nodes_out, is_hidden),
-            biases: vec![0.0; num_nodes_out],
-            loss_gradient_weights: vec![vec![0.0; num_nodes_in]; num_nodes_out],
-            loss_gradient_biases: vec![0.0; num_nodes_out],
+            biases: Array1::zeros(num_nodes_out),
+            loss_gradient_weights: Array2::zeros((num_nodes_out, num_nodes_in)),
+            loss_gradient_biases: Array1::zeros(num_nodes_out),
             nodes_in: num_nodes_in,
             nodes_out: num_nodes_out,
             is_hidden: is_hidden,
@@ -32,7 +34,7 @@ impl Layer {
         for i in 0..self.nodes_out {
             let mut output = self.biases[i];
             for j in 0..self.nodes_in {
-                output += inputs[j] * self.weights[i][j];
+                output += inputs[j] * self.weights[(i, j)];
             }
             outputs[i] = output;
             activations[i] = self.activation_function(output);
@@ -47,8 +49,8 @@ impl Layer {
             self.biases[i] -= learn_rate * (self.loss_gradient_biases[i] / batch_size as f64);
             self.loss_gradient_biases[i] = 0.0;
             for j in 0..self.nodes_in {
-                self.weights[i][j] -= learn_rate * (self.loss_gradient_weights[i][j] / batch_size as f64);
-                self.loss_gradient_weights[i][j] = 0.0;
+                self.weights[(i, j)] -= learn_rate * (self.loss_gradient_weights[(i, j)] / batch_size as f64);
+                self.loss_gradient_weights[(i, j)] = 0.0;
             }
         }
     }
@@ -90,7 +92,7 @@ impl Layer {
 
             // Update gradient of weights (derivative of weights is the input value)
             for j in 0..self.nodes_in {
-                self.loss_gradient_weights[i][j] += propagated_values[i] * inputs[j];
+                self.loss_gradient_weights[(i, j)] += propagated_values[i] * inputs[j];
             }
         }
         // Return propagated values for the next layers to use
@@ -99,16 +101,17 @@ impl Layer {
 }
 
 // Use He Initialization for hidden layers, Xavier/Glorot Initialization for final layer
-fn initialize_weights(num_nodes_in: usize, num_nodes_out: usize, is_hidden: bool) ->  Vec<Vec<f64>> {
+fn initialize_weights(num_nodes_in: usize, num_nodes_out: usize, is_hidden: bool) ->  Array2<f64> {
     let limit: f64 = if is_hidden {
         (2.0 / num_nodes_in as f64).sqrt() // He 
     } else {
         (6.0 / (num_nodes_in + num_nodes_out) as f64).sqrt() // Xavier/Glorot
     };
-    let mut weights: Vec<Vec<f64>> = vec![vec![0.0; num_nodes_in]; num_nodes_out];
+    let mut weights: Array2<f64> = Array2::zeros((num_nodes_out, num_nodes_in));
+
     for i in 0..num_nodes_out {
         for j in 0..num_nodes_in {
-            weights[i][j] = rand::random::<f64>() * 2.0 * limit - limit;
+            weights[(i, j)] = rand::random::<f64>() * 2.0 * limit - limit;
         }
     }
     weights

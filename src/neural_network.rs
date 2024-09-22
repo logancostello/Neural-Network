@@ -57,7 +57,6 @@ impl NeuralNetwork {
         total_loss / data.len() as f64
     }
     
-
     // Calculate accuracy for a given dataset
     pub fn accuracy(&self, data: &Vec<DataPoint>) -> f64 {
         // Uses a thread for each datapoint for efficiency when the data is large
@@ -74,7 +73,6 @@ impl NeuralNetwork {
         num_correct / data.len() as f64
     }
     
- 
     // Run a single iteration of Gradient Descent via backpropagation
     pub fn learn(&mut self, training_data: &mut Vec<DataPoint>, learn_rate: f64, batch_size: usize) {
         training_data.shuffle(&mut thread_rng());
@@ -100,7 +98,6 @@ impl NeuralNetwork {
         }
     }
     
-
     // Update all weights and biases in all layers
     pub fn apply_all_gradients(&mut self, learn_rate: f64, batch_size: usize) {
         for layer in &mut self.layers {
@@ -136,7 +133,7 @@ impl NeuralNetwork {
             let activation_derivative = self.layers[layer_index].activation_derivative(outputs[i]);
             let mut following_layer_values = 0.0;
             for j in 0..self.layers[layer_index + 1].nodes_out {
-                following_layer_values += prev_propagated_values[j] * self.layers[layer_index + 1].weights[j][i];
+                following_layer_values += prev_propagated_values[j] * self.layers[layer_index + 1].weights[(j, i)];
             }
             propagated_values[i] = activation_derivative * following_layer_values;
 
@@ -145,7 +142,7 @@ impl NeuralNetwork {
 
             // Update gradient of weights (derivative of weights is the input value)
             for j in 0..self.layers[layer_index].nodes_in {
-                self.layers[layer_index].loss_gradient_weights[i][j] += propagated_values[i] * inputs[j];
+                self.layers[layer_index].loss_gradient_weights[(i, j)] += propagated_values[i] * inputs[j];
             }
         }
         propagated_values
