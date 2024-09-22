@@ -14,13 +14,18 @@ use std::error::Error;
 
 
 fn main() {
-    let learn_rate = 5.0;
-    let batch_size = 512;
-    let nodes_per_layer = vec![784, 300, 10];
+    let learn_rate = 0.01;
+    let batch_size = 64;
+    let nodes_per_layer = vec![784, 128, 64, 10];
     match get_mnist() {
         Some(mut dataset) => run(learn_rate, nodes_per_layer, batch_size, &mut dataset),
         None => println!("No data"),
     }
+
+    // let learn_rate = 0.25;
+    // let batch_size = 50;
+    // let nodes_per_layer = vec![2, 5, 2];
+    // run_2d_curved_test(learn_rate, nodes_per_layer, batch_size)
 }
 
 // Run network on given data
