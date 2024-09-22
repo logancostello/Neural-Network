@@ -74,7 +74,7 @@ impl NeuralNetwork {
         num_correct / data.len() as f64
     }
     
-
+ 
     // Run a single iteration of Gradient Descent via backpropagation
     pub fn learn(&mut self, training_data: &mut Vec<DataPoint>, learn_rate: f64, batch_size: usize) {
         training_data.shuffle(&mut thread_rng());
