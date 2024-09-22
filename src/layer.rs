@@ -26,7 +26,7 @@ impl Layer {
 
     // Loop through all of the inputs and calculate the outputs
     // Additionally return the inputs and outputs for backpropagation
-    pub fn calculate_outputs(&mut self, inputs: &Vec<f64>) -> (Vec<f64>, (Vec<f64>, Vec<f64>)) {
+    pub fn calculate_outputs(&self, inputs: &Vec<f64>) -> (Vec<f64>, (Vec<f64>, Vec<f64>)) {
         let mut activations: Vec<f64> = Vec::new();
         let mut outputs: Vec<f64> = Vec::new();
         for i in 0..self.nodes_out {

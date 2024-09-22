@@ -2,6 +2,8 @@ use crate::layer::Layer;
 use crate::data_point::DataPoint;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
+use rayon::prelude::*;
+
 
 pub struct NeuralNetwork {
     layers: Vec<Layer>
@@ -21,10 +23,10 @@ impl NeuralNetwork {
 
     // Run the inputs through the network to get the outputs
     // Additionally record the inputs and outputs of each layer for backpropagation
-    pub fn calculate_outputs(&mut self, inputs: &Vec<f64>) -> (Vec<f64>, Vec<(Vec<f64>, Vec<f64>)>) {
+    pub fn calculate_outputs(&self, inputs: &Vec<f64>) -> (Vec<f64>, Vec<(Vec<f64>, Vec<f64>)>) {
         let mut history: Vec<(Vec<f64>, Vec<f64>)> = Vec::new();
         let mut inputs_for_next_layer: Vec<f64> = inputs.clone();
-        for layer in &mut self.layers {
+        for layer in &self.layers {
             // The outputs of one layer are the inputs for the next layer
             let (outputs, layer_history) = layer.calculate_outputs(&inputs_for_next_layer);
             inputs_for_next_layer = outputs;
@@ -34,13 +36,11 @@ impl NeuralNetwork {
     }
 
     // Multiclass cross entropy loss
-    pub fn loss(&mut self, data: &Vec<DataPoint>) -> f64 {
-        let mut loss: f64 = 0.0;
-
-        // Get loss for each DataPoint
-        for dp in data {
+    pub fn loss(&self, data: &Vec<DataPoint>) -> f64 {
+        let total_loss: f64 = data.par_iter().map(|dp| {
             let (outputs, _) = self.calculate_outputs(&dp.inputs);
-            
+            let mut loss = 0.0;
+    
             // Add loss of each node
             for i in 0..outputs.len() {
                 if outputs[i] == 0.0 {
@@ -49,26 +49,30 @@ impl NeuralNetwork {
                     loss -= dp.expected_outputs[i] as f64 * outputs[i].ln();
                 }
             }
-        }
-
+            loss
+        }).sum();
+    
         // Return average loss for consistency across varying amounts of data
-        loss / data.len() as f64
+        total_loss / data.len() as f64
     }
+    
 
     // Calculate accuracy for a given dataset
-    pub fn accuracy(&mut self, data: &Vec<DataPoint>) -> f64 {
-        let mut num_correct = 0.0;
-
-        // Check expected class is the same as the predicted class
-        for dp in data {
+    pub fn accuracy(&self, data: &Vec<DataPoint>) -> f64 {
+        // Uses a thread for each datapoint for efficiency when the data is large
+        let num_correct: f64 = data.par_iter().map(|dp| {
             let (outputs, _) = self.calculate_outputs(&dp.inputs);
             let predicted_class: usize = classify(&outputs);
             if dp.expected_outputs[predicted_class] == 1 {
-                num_correct += 1.0;
+                1.0
+            } else {
+                0.0
             }
-        }
+        }).sum();
+    
         num_correct / data.len() as f64
     }
+    
 
     // Run a single iteration of Gradient Descent via backpropagation
     pub fn learn(&mut self, training_data: &mut Vec<DataPoint>, learn_rate: f64, batch_size: usize) {
