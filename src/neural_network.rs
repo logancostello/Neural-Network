@@ -78,7 +78,7 @@ impl NeuralNetwork {
     pub fn learn(&mut self, training_data: &mut Vec<DataPoint>, learn_rate: f64, batch_size: usize) {
         training_data.shuffle(&mut thread_rng());
         let mut mini_batches = training_data.chunks(batch_size);
-        while let Some(mini_batch) = mini_batches.next() {
+        for mini_batch in mini_batches {
             for datapoint in mini_batch {
                 self.update_gradients(&datapoint);
             }
