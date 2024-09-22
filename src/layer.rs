@@ -27,15 +27,15 @@ impl Layer {
     // Loop through all of the inputs and calculate the outputs
     // Additionally return the inputs and outputs for backpropagation
     pub fn calculate_outputs(&self, inputs: &Vec<f64>) -> (Vec<f64>, (Vec<f64>, Vec<f64>)) {
-        let mut activations: Vec<f64> = Vec::new();
-        let mut outputs: Vec<f64> = Vec::new();
+        let mut activations: Vec<f64> = vec![0.0; self.nodes_out];
+        let mut outputs: Vec<f64> = vec![0.0; self.nodes_out];
         for i in 0..self.nodes_out {
             let mut output = self.biases[i];
             for j in 0..self.nodes_in {
                 output += inputs[j] * self.weights[i][j];
             }
-            outputs.push(output);
-            activations.push(self.activation_function(output));
+            outputs[i] = output;
+            activations[i] = self.activation_function(output);
         }
         // Save the inputs for backpropagation
         (activations, (inputs.clone(), outputs))
@@ -69,11 +69,10 @@ impl Layer {
     // Derivative with respect to the output (pre-activation value)
     pub fn activation_derivative(&self, output: f64) -> f64 {
         if self.is_hidden {
-            // return (output + output.abs()) / (2.0 * output.abs()) 
             return if output > 0.0 {1.0} else {0.0}
         }
         let sigmoid_output = 1.0 / (1.0 + (-output).exp());
-        return sigmoid_output * (1.0 - sigmoid_output);
+        sigmoid_output * (1.0 - sigmoid_output)
     }
 
     // The first step in backpropagation is updating the gradient of the final layer
