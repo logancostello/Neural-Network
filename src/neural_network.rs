@@ -4,7 +4,7 @@ use rand::seq::SliceRandom;
 use rand::thread_rng;
 use rayon::prelude::*;
 use std::sync::{Arc, Mutex};
-use ndarray::{Array2, Array1};
+use ndarray::{Array2, Array1, Axis};
 
 
 pub struct NeuralNetwork {
@@ -88,7 +88,14 @@ impl NeuralNetwork {
             mini_batch.par_iter().for_each(|datapoint| {
                 let self_clone = Arc::clone(&self_arc); // Clone the Arc to share it with the threads
                 
-                let mut instance = self_clone.lock().unwrap(); // Lock the mutex to get mutable access
+                let mut instance = match self_clone.lock() {
+                    Ok(instance) => instance,
+                    Err(poisoned) => {
+                        eprintln!("Mutex poisoned: {}", poisoned);
+                        return; // Skip this iteration
+                    }
+                };
+
                 instance.update_gradients(&datapoint);
             });
     
@@ -128,25 +135,21 @@ impl NeuralNetwork {
     // Update the gradients of the given layer by using the propagated values from the following layers
     // Ideally this could be a Layer method, there becomes ownership issues when the layer needs the values from the following layer
     pub fn update_hidden_layer_gradient(&mut self, layer_index: usize, prev_propagated_values: &Array1<f64>, inputs: &Array1<f64>, outputs: &Array1<f64>) -> Array1<f64> {
-        let mut propagated_values: Array1<f64> = Array1::zeros(self.layers[layer_index].nodes_out);
-        for i in 0..self.layers[layer_index].nodes_out {
 
-            // Calculate and store values that will be propagated
-            let activation_derivative = self.layers[layer_index].activation_derivative(outputs[i]);
-            let mut following_layer_values = 0.0;
-            for j in 0..self.layers[layer_index + 1].nodes_out {
-                following_layer_values += prev_propagated_values[j] * self.layers[layer_index + 1].weights[(j, i)];
-            }
-            propagated_values[i] = activation_derivative * following_layer_values;
+        // Calculate and store values that will be propagated
+        let activation_derivatives = outputs.mapv(|o| self.layers[layer_index].activation_derivative(o));
+        let following_layer_values = self.layers[layer_index + 1].weights.t().dot(prev_propagated_values);
+        let propagated_values: Array1<f64> = activation_derivatives * following_layer_values;
 
-            // Update gradient of biases (derivative of biases is 1)
-            self.layers[layer_index].loss_gradient_biases[i] += propagated_values[i];
+        // Update gradient of biases (derivative of biases is 1)
+        self.layers[layer_index].loss_gradient_biases += &propagated_values;
 
-            // Update gradient of weights (derivative of weights is the input value)
-            for j in 0..self.layers[layer_index].nodes_in {
-                self.layers[layer_index].loss_gradient_weights[(i, j)] += propagated_values[i] * inputs[j];
-            }
-        }
+        // Update gradient of weights (derivative of weights is the input value)
+        let inputs_reshaped = inputs.view().insert_axis(Axis(0)); 
+        let propagated_values_reshaped = propagated_values.view().insert_axis(Axis(1)); 
+        self.layers[layer_index].loss_gradient_weights += &(propagated_values_reshaped.dot(&inputs_reshaped)); 
+        
+        // Return propagated values for next layer
         propagated_values
     }
 } 

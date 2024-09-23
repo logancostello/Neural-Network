@@ -17,7 +17,7 @@ use ndarray::{Array2, Array1};
 fn main() {
     let learn_rate = 0.01;
     let batch_size = 64;
-    let nodes_per_layer = vec![784, 128, 64, 10];
+    let nodes_per_layer = vec![784, 300, 100, 10];
     match get_mnist() {
         Some(mut dataset) => run(learn_rate, nodes_per_layer, batch_size, &mut dataset),
         None => println!("No data"),

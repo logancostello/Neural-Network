@@ -85,6 +85,26 @@ impl Layer {
         // Return propagated values for the next layers to use
         propagated_values
     }
+
+    // The first step in backpropagation is updating the gradient of the final layer
+    pub fn update_final_layer_gradient1(&mut self, predicted: &Array1<f64>, expected: &Array1<usize>, inputs: &Array1<f64>, outputs: &Array1<f64>) -> Array1<f64> {
+        // Calculate and store values that will be propagated
+        // let loss_derivatives: Array1<f64> = predicted.iter().zip(expected.iter().map(|&x| x as f64)).map(|(&pred, exp)| loss_derivative(pred, exp)).collect();
+        let loss_derivatives: Array1<f64> = predicted - expected.mapv(|x| x as f64);
+        let activation_derivatives = outputs.mapv(|output| self.activation_derivative(output));
+        let propagated_values = &loss_derivatives * &activation_derivatives;
+
+        // Update gradient of biases (derivative of biases is 1)
+        self.loss_gradient_biases += &propagated_values;
+
+        // Update gradient of weights (derivative of weights is the input value)
+        let inputs_reshaped = inputs.view().insert_axis(Axis(0)); 
+        let propagated_values_reshaped = propagated_values.view().insert_axis(Axis(1)); 
+        self.loss_gradient_weights += &(propagated_values_reshaped.dot(&inputs_reshaped)); 
+
+        // Return propagated values for the next layers to use
+        propagated_values
+    }
 }
 
 // Use He Initialization for hidden layers, Xavier/Glorot Initialization for final layer
