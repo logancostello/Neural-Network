@@ -102,7 +102,7 @@ impl NeuralNetwork {
             // Lock the mutex again to apply gradients after all updates
             {
                 let mut instance = self_arc.lock().unwrap();
-                instance.apply_all_gradients(learn_rate, training_data.len());
+                instance.apply_all_gradients(learn_rate, mini_batch.len());
             }
         }
     }
@@ -135,7 +135,7 @@ impl NeuralNetwork {
     // Update the gradients of the given layer by using the propagated values from the following layers
     // Ideally this could be a Layer method, there becomes ownership issues when the layer needs the values from the following layer
     pub fn update_hidden_layer_gradient(&mut self, layer_index: usize, prev_propagated_values: &Array1<f64>, inputs: &Array1<f64>, outputs: &Array1<f64>) -> Array1<f64> {
-
+        
         // Calculate and store values that will be propagated
         let activation_derivatives = outputs.mapv(|o| self.layers[layer_index].activation_derivative(o));
         let following_layer_values = self.layers[layer_index + 1].weights.t().dot(prev_propagated_values);
