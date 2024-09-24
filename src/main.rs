@@ -15,9 +15,9 @@ use ndarray::{Array2, Array1};
 
 
 fn main() {
-    let learn_rate = 0.01;
-    let batch_size = 64;
-    let nodes_per_layer = vec![784, 300, 100, 10];
+    let learn_rate = 1.0;
+    let batch_size = 256;
+    let nodes_per_layer = vec![784, 256, 10];
     match get_mnist() {
         Some(mut dataset) => run(learn_rate, nodes_per_layer, batch_size, &mut dataset),
         None => println!("No data"),
@@ -30,7 +30,7 @@ fn main() {
 }
 
 // Run network on given data
-fn run(learn_rate: f64, nodes_per_layer: Vec<usize>, batch_size: usize, dataset: &mut DataSet) {
+fn run(mut learn_rate: f64, nodes_per_layer: Vec<usize>, batch_size: usize, dataset: &mut DataSet) {
     let mut neural_network = NeuralNetwork::new(nodes_per_layer);
     let mut num = 1;
     println!("Epoch {num}. Loss: {:.6}, Train: {:.4}, Test: {:.4}", neural_network.loss(&dataset.train), neural_network.accuracy(&dataset.train), neural_network.accuracy(&dataset.test));
@@ -156,7 +156,7 @@ fn get_mnist() -> Option<DataSet> {
 }
 
 // Reads the MNIST images
-fn get_mnist_images(file_path: &str) -> Result<Vec<Vec<u8>>, Box<dyn Error>> {
+fn get_mnist_images(file_path: &str) -> Result<Vec<Vec<f32>>, Box<dyn Error>> {
     // Open the file
     let file = File::open(file_path)?;
     let mut reader = BufReader::new(file);
@@ -180,10 +180,13 @@ fn get_mnist_images(file_path: &str) -> Result<Vec<Vec<u8>>, Box<dyn Error>> {
     let num_images = num_images as usize;
     let rows = rows as usize;
     let cols = cols as usize;
-    let mut images = vec![vec![0; rows * cols]; num_images];
+    let mut images: Vec<Vec<f32>> = Vec::with_capacity(num_images);
 
-    for image in images.iter_mut() {
-        reader.read_exact(image)?;
+    let mut buffer = vec![0u8; rows * cols];
+    for _ in 0..num_images {
+        reader.read_exact(&mut buffer)?;
+        let image: Vec<f32> = buffer.iter().map(|&byte| f32::from(byte) / 255.0).collect();
+        images.push(image);
     }
 
     Ok(images)
