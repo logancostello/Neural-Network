@@ -22,11 +22,7 @@ fn main() {
         Some(mut dataset) => run(learn_rate, nodes_per_layer, batch_size, &mut dataset),
         None => println!("No data"),
     }
-
-    // let learn_rate = 0.25;
-    // let batch_size = 50;
-    // let nodes_per_layer = vec![2, 5, 2];
-    // run_2d_curved_test(learn_rate, nodes_per_layer, batch_size)
+    // Best performance so far: 99% training, 98% test
 }
 
 // Run network on given data
