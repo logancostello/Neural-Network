@@ -1,9 +1,7 @@
 # Neural Network
 I built a feed forward neural network from scratch, and trained in on the [MNIST](https://en.wikipedia.org/wiki/MNIST_database) dataset
 
-## Details
-This network implements gradient descent via backpropagation.
-
+## Performance
 After 15 epochs, the network was able to correctly label 98% of handwriten digits that it had never seen before (validation accuracy) with only 1% overfitting.
 
 ![Screen Shot 2024-09-23 at 11 23 43 PM](https://github.com/user-attachments/assets/3b1efcb1-9b86-4fae-b07d-8325eb870f63)
